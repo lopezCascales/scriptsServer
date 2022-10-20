@@ -1,0 +1,564 @@
+setwd('/media/angel/d82a0508-2962-4e4a-8aa0-f444e7cdf1f1/dropbox/Maite - Angel/Veronica/C-somavsAxon_19072017/new')
+
+library("GenomicAlignments")
+library("BiocParallel")
+library("DESeq2")
+library("GenomicFeatures")
+Biocpkg("genefilter")
+library(genefilter)
+library(BiocStyle)
+library(rmarkdown)
+library(geneplotter)
+library(ggplot2)
+library(plyr)
+library(LSD)
+library(DESeq2)
+library(gplots)
+library(RColorBrewer)
+library(stringr)
+library(topGO)
+library(genefilter)
+library(biomaRt)
+library(dplyr)
+library(EDASeq)
+library(fdrtool)
+library(org.Mm.eg.db)
+library(topGO)
+library(genefilter)
+
+
+datos1<-read.table("CtrlRetina_ipsilaterales_HTP45_.txt",header=FALSE)
+datos2<-read.table("CtrlRetina_ipsilaterales_HTP46_.txt",header=FALSE)
+datos3<-read.table("CtrlRetina_ipsilaterales_HTP47_.txt",header=FALSE)
+datos4<-read.table("SertTRAP_ipsilaterales_Retina_HTP48_.txt",header=FALSE)
+datos5<-read.table("SertTRAP_ipsilaterales_Retina_HTP49_.txt",header=FALSE)
+datos6<-read.table("SertTRAP_ipsilaterales_Retina_HTP50_.txt",header=FALSE)
+datos7<-read.table("CtrlAxones_ipsilaterales_HTP51_.txt",header=FALSE)
+datos8<-read.table("CtrlAxones_ipsilaterales_HTP52_.txt",header=FALSE)
+datos9<-read.table("CtrlAxones_ipsilaterales_HTP53_.txt",header=FALSE)
+datos10<-read.table("SertTRAP_ipsilaterales_Axones_HTP55_.txt",header=FALSE)
+datos11<-read.table("SertTRAP_ipsilaterales_Axones_HTP56_.txt",header=FALSE)
+
+datos12<-read.table("CtrlRetina_contralaterales_HTP23_.txt",header=FALSE)
+datos13<-read.table("CtrlRetina_contralaterales_HTP24_.txt",header=FALSE)
+datos14<-read.table("HTP11_Brn3bTRAP_Retina.txt",header=FALSE)
+datos15<-read.table("HTP12_Brn3bTRAP_Retina.txt",header=FALSE)
+datos16<-read.table("HTP13_Brn3bTRAP_Retina.txt",header=FALSE)
+datos17<-read.table("CtrlAxon_contralaterales_HTP26_.txt",header=FALSE)
+datos18<-read.table("CtrlAxon_contralaterales_HTP27_.txt",header=FALSE)
+datos19<-read.table("HTP19_Brn3bTRAP_Axones.txt",header=FALSE)
+datos20<-read.table("HTP20_Brn3bTRAP_Axones.txt",header=FALSE)
+datos21<-read.table("HTP21_Brn3bTRAP_Axones.txt",header=FALSE)
+
+
+
+names(datos1)[2]<-"SrR_45"
+names(datos2)[2]<-"SrR_46"
+names(datos3)[2]<-"SrR_47"
+names(datos4)[2]<-"STR_48"
+names(datos5)[2]<-"STR_49"
+names(datos6)[2]<-"STR_50"
+names(datos7)[2]<-"SrA_51"
+names(datos8)[2]<-"SrA_52"
+names(datos9)[2]<-"SrA_53"
+names(datos10)[2]<-"STA_55"
+names(datos11)[2]<-"STA_56"
+
+names(datos12)[2]<-"BrR_23"
+names(datos13)[2]<-"BrR_24"
+names(datos14)[2]<-"BTR_11"
+names(datos15)[2]<-"BTR_12"
+names(datos16)[2]<-"BTR_13"
+names(datos17)[2]<-"BrA_26"
+names(datos18)[2]<-"BrA_27"
+names(datos19)[2]<-"BTA_19"
+names(datos20)[2]<-"BTA_20"
+names(datos21)[2]<-"BTA_21"
+
+
+names(datos1)[1]<-"Genes"
+names(datos2)[1]<-"Genes"
+names(datos3)[1]<-"Genes"
+names(datos4)[1]<-"Genes"
+names(datos5)[1]<-"Genes"
+names(datos6)[1]<-"Genes"
+names(datos7)[1]<-"Genes"
+names(datos8)[1]<-"Genes"
+names(datos9)[1]<-"Genes"
+names(datos10)[1]<-"Genes"
+names(datos11)[1]<-"Genes"
+names(datos12)[1]<-"Genes"
+names(datos13)[1]<-"Genes"
+names(datos14)[1]<-"Genes"
+names(datos15)[1]<-"Genes"
+names(datos16)[1]<-"Genes"
+names(datos17)[1]<-"Genes"
+names(datos18)[1]<-"Genes"
+names(datos19)[1]<-"Genes"
+names(datos20)[1]<-"Genes"
+names(datos21)[1]<-"Genes"
+
+datos<-datos1
+datos<-merge(datos,datos2,sort=FALSE,all.x=FALSE,all.y=FALSE,by="Genes")
+datos<-merge(datos,datos3,sort=FALSE,all.x=FALSE,all.y=FALSE,by="Genes")
+datos<-merge(datos,datos4,sort=FALSE,all.x=FALSE,all.y=FALSE,by="Genes")
+datos<-merge(datos,datos5,sort=FALSE,all.x=FALSE,all.y=FALSE,by="Genes")
+datos<-merge(datos,datos6,sort=FALSE,all.x=FALSE,all.y=FALSE,by="Genes")
+datos<-merge(datos,datos7,sort=FALSE,all.x=FALSE,all.y=FALSE,by="Genes")
+datos<-merge(datos,datos8,sort=FALSE,all.x=FALSE,all.y=FALSE,by="Genes")
+datos<-merge(datos,datos9,sort=FALSE,all.x=FALSE,all.y=FALSE,by="Genes")
+datos<-merge(datos,datos10,sort=FALSE,all.x=FALSE,all.y=FALSE,by="Genes")
+datos<-merge(datos,datos11,sort=FALSE,all.x=FALSE,all.y=FALSE,by="Genes")
+datos<-merge(datos,datos12,sort=FALSE,all.x=FALSE,all.y=FALSE,by="Genes")
+datos<-merge(datos,datos13,sort=FALSE,all.x=FALSE,all.y=FALSE,by="Genes")
+datos<-merge(datos,datos14,sort=FALSE,all.x=FALSE,all.y=FALSE,by="Genes")
+datos<-merge(datos,datos15,sort=FALSE,all.x=FALSE,all.y=FALSE,by="Genes")
+datos<-merge(datos,datos16,sort=FALSE,all.x=FALSE,all.y=FALSE,by="Genes")
+datos<-merge(datos,datos17,sort=FALSE,all.x=FALSE,all.y=FALSE,by="Genes")
+datos<-merge(datos,datos18,sort=FALSE,all.x=FALSE,all.y=FALSE,by="Genes")
+datos<-merge(datos,datos19,sort=FALSE,all.x=FALSE,all.y=FALSE,by="Genes")
+datos<-merge(datos,datos20,sort=FALSE,all.x=FALSE,all.y=FALSE,by="Genes")
+datos<-merge(datos,datos21,sort=FALSE,all.x=FALSE,all.y=FALSE,by="Genes")
+
+cts<-as.data.frame(datos[,-1])
+row.names(cts)<-datos[,1]
+
+Sample<-names(datos)[-1]
+
+##########################################################################################
+
+
+#samplefiles <-grep("*.txt", list.files(directory), value=TRUE)
+#samplefiles
+
+library(DESeq2)
+
+group2 <- c(rep("SrR",3), rep("STR",3),rep("SrA",3),rep("STA",2),rep("BrR",2),rep("BTR",3), rep("BrA",2), rep("BTA",3)) 
+coldata<-data.frame(group2=group2,row.names=Sample)
+
+dds <- DESeqDataSetFromMatrix(countData=cts,colData=coldata,design=~group2)
+
+#####################################   
+dds <- DESeq(dds)
+dds <- dds[ rowSums(counts(dds)) > 1, ]
+ resultsNames(dds) ## group2
+[1] "Intercept" "group2BrA" "group2BrR" "group2BTA" "group2BTR" "group2SrA"
+[7] "group2SrR" "group2STA" "group2STR"
+
+coldata
+
+
+###########################################################################3
+## “TRAPped transcripts at Brn3b+ RGC axons (chiasm)” vs “TRAPped transcripts at Brn3b+ RGC somas”
+## Axon vs Soma (Brn3bTRAP)
+res <- results(dds, contrast=list("group2BTA","group2BTR"))
+head(res)
+
+log2 fold change (MAP): group2BTA vs group2BTR 
+Wald test p-value: group2BTA vs group2BTR 
+DataFrame with 6 rows and 6 columns
+                       baseMean log2FoldChange     lfcSE       stat
+                      <numeric>      <numeric> <numeric>  <numeric>
+ENSMUSG00000000001 6.947530e+03     -0.7881922 0.2025369 -3.8915986
+ENSMUSG00000000028 1.163775e+03      0.3708933 0.3999114  0.9274386
+ENSMUSG00000000031 2.284461e+04      1.2186806 0.4572868  2.6650249
+ENSMUSG00000000037 1.727935e+02      0.5534269 0.6087342  0.9091438
+ENSMUSG00000000049 6.713384e-01      0.0000000 0.3267932  0.0000000
+ENSMUSG00000000056 4.611093e+03     -1.0619209 0.1700378 -6.2452032
+                         pvalue         padj
+                      <numeric>    <numeric>
+ENSMUSG00000000001 9.958591e-05 9.638148e-04
+ENSMUSG00000000028 3.536988e-01 5.913937e-01
+ENSMUSG00000000031 7.698262e-03 3.643279e-02
+ENSMUSG00000000037 3.632742e-01 6.004006e-01
+ENSMUSG00000000049           NA           NA
+ENSMUSG00000000056 4.232494e-10 1.454497e-08
+
+
+
+###########################################################################3
+##“TRAPped transcripts at Brn3b+ RGC axons (chiasm)” vs “Residual signal after IP from chiasm E13.5”
+## Axon vs Residualsignalchiasm (Brn3b)
+
+res <- results(dds, contrast=list("group2BTA","group2BrA "))
+head(res)
+log2 fold change (MAP): group2BTA vs group2BrA 
+Wald test p-value: group2BTA vs group2BrA 
+DataFrame with 6 rows and 6 columns
+                       baseMean log2FoldChange     lfcSE       stat
+                      <numeric>      <numeric> <numeric>  <numeric>
+ENSMUSG00000000001 6.947530e+03      0.7564343 0.2261089  3.3454422
+ENSMUSG00000000028 1.163775e+03      0.2278511 0.4373594  0.5209700
+ENSMUSG00000000031 2.284461e+04     -0.2468849 0.4943948 -0.4993679
+ENSMUSG00000000037 1.727935e+02      0.7380848 0.6385998  1.1557861
+ENSMUSG00000000049 6.713384e-01      0.0000000 0.2983587  0.0000000
+ENSMUSG00000000056 4.611093e+03      0.7005889 0.1913290  3.6616971
+                         pvalue       padj
+                      <numeric>  <numeric>
+ENSMUSG00000000001 0.0008215148 0.01609545
+ENSMUSG00000000028 0.6023876466 0.82003131
+ENSMUSG00000000031 0.6175202442 0.82781728
+ENSMUSG00000000037 0.2477686517 0.54158497
+ENSMUSG00000000049           NA         NA
+ENSMUSG00000000056 0.0002505500 0.00693741
+
+
+###########################################################################3
+###########################################################################
+## “TRAPped transcripts at Sert+ RGC axons (chiasm)” vs “TRAPped transcripts at Sert+ RGC somas”
+## Sert Axon vs Sert soma
+res <- results(dds, contrast=list("group2STA","group2STR"))
+head(res)
+log2 fold change (MAP): group2STA vs group2STR 
+Wald test p-value: group2STA vs group2STR 
+DataFrame with 6 rows and 6 columns
+                       baseMean log2FoldChange     lfcSE       stat
+                      <numeric>      <numeric> <numeric>  <numeric>
+ENSMUSG00000000001 6.947530e+03     -0.2128582 0.2247593 -0.9470496
+ENSMUSG00000000028 1.163775e+03     -1.9577703 0.4347850 -4.5028468
+ENSMUSG00000000031 2.284461e+04      1.2519179 0.4943528  2.5324380
+ENSMUSG00000000037 1.727935e+02     -0.3843340 0.6349292 -0.6053180
+ENSMUSG00000000049 6.713384e-01      0.0000000 0.3034751  0.0000000
+ENSMUSG00000000056 4.611093e+03     -0.3633231 0.1886994 -1.9254071
+                         pvalue         padj
+                      <numeric>    <numeric>
+ENSMUSG00000000001 3.436135e-01 0.6481200491
+ENSMUSG00000000028 6.704923e-06 0.0001279387
+ENSMUSG00000000031 1.132724e-02 0.0641633980
+ENSMUSG00000000037 5.449677e-01 0.8081545704
+ENSMUSG00000000049           NA           NA
+ENSMUSG00000000056 5.417844e-02 0.2054831216
+
+
+###########################################################################3
+## “TRAPped transcripts at Sert+ RGC axons (chiasm)” 55-56 vs “Residual signal after IP from chiasm E15.5” 51-52-53
+## Sert TRAP axon vs Residual signal Axon sert
+
+res <- results(dds, contrast=list("group2STA","group2SrA"))
+head(res)
+log2 fold change (MAP): group2STA vs group2SrA 
+Wald test p-value: group2STA vs group2SrA 
+DataFrame with 6 rows and 6 columns
+                       baseMean log2FoldChange     lfcSE        stat    pvalue
+                      <numeric>      <numeric> <numeric>   <numeric> <numeric>
+ENSMUSG00000000001 6.947530e+03     0.01092420 0.2247673  0.04860225 0.9612363
+ENSMUSG00000000028 1.163775e+03     0.03264300 0.4352487  0.07499849 0.9402159
+ENSMUSG00000000031 2.284461e+04     0.05769045 0.4943402  0.11670192 0.9070963
+ENSMUSG00000000037 1.727935e+02    -0.13242581 0.6349650 -0.20855609 0.8347948
+ENSMUSG00000000049 6.713384e-01    -0.49700712 0.3049579 -1.62975636        NA
+ENSMUSG00000000056 4.611093e+03     0.21814890 0.1887833  1.15555217 0.2478644
+                        padj
+                   <numeric>
+ENSMUSG00000000001         1
+ENSMUSG00000000028         1
+ENSMUSG00000000031         1
+ENSMUSG00000000037         1
+ENSMUSG00000000049        NA
+ENSMUSG00000000056         1
+
+###########################################################################3
+## Residual signal after IP from E15.5 retinas”45-46-47 vs “Residual signal after IP from E13.5 retinas (23-24)
+
+res <- results(dds, contrast=list("group2SrR","group2BrR"))
+head(res)
+log2 fold change (MAP): group2SrR vs group2BrR 
+Wald test p-value: group2Retina.Control.IL vs group2Retina.Control.CL 
+DataFrame with 6 rows and 6 columns
+                       baseMean log2FoldChange     lfcSE        stat
+                      <numeric>      <numeric> <numeric>   <numeric>
+ENSMUSG00000000001 7.035147e+03    0.002623499 0.2296667  0.01142307
+ENSMUSG00000000028 1.288403e+03    0.230724557 0.4498376  0.51290634
+ENSMUSG00000000031 2.424944e+04   -1.120973419 0.5167935 -2.16909367
+ENSMUSG00000000037 1.866814e+02    0.455113038 0.6614426  0.68806128
+ENSMUSG00000000049 7.818265e-01    0.000000000 0.3280466  0.00000000
+ENSMUSG00000000056 4.786426e+03    0.510140422 0.1846027  2.76344987
+                        pvalue       padj
+                     <numeric>  <numeric>
+ENSMUSG00000000001 0.990885910 1.00000000
+ENSMUSG00000000028 0.608016840 0.83016004
+ENSMUSG00000000031 0.030075573 0.14316676
+ENSMUSG00000000037 0.491414193 0.75623999
+ENSMUSG00000000049          NA         NA
+ENSMUSG00000000056 0.005719388 0.04323365
+
+###########################################################################3
+##“TRAPped transcripts at Brn3b+ RGC somas”(11-12) vs “TRAPped transcripts at Sert+ RGC somas”(48-49-50)
+
+res <- results(dds, contrast=list("group2Retina.TRAP.CL","group2Retina.TRAP.IL"))
+head(res)
+log2 fold change (MAP): group2Retina.TRAP.CL vs group2Retina.TRAP.IL 
+Wald test p-value: group2Retina.TRAP.CL vs group2Retina.TRAP.IL 
+DataFrame with 6 rows and 6 columns
+                       baseMean log2FoldChange     lfcSE       stat
+                      <numeric>      <numeric> <numeric>  <numeric>
+ENSMUSG00000000001 7.035147e+03      0.6217282 0.2291411  2.7132979
+ENSMUSG00000000028 1.288403e+03     -1.6975192 0.4499460 -3.7727175
+ENSMUSG00000000031 2.424944e+04     -0.3533307 0.5168102 -0.6836759
+ENSMUSG00000000037 1.866814e+02     -0.7571656 0.6608322 -1.1457759
+ENSMUSG00000000049 7.818265e-01      0.0000000 0.3290516  0.0000000
+ENSMUSG00000000056 4.786426e+03      0.8165994 0.1831967  4.4574996
+                         pvalue         padj
+                      <numeric>    <numeric>
+ENSMUSG00000000001 6.661718e-03 2.736979e-02
+ENSMUSG00000000028 1.614791e-04 1.135182e-03
+ENSMUSG00000000031 4.941799e-01 6.898645e-01
+ENSMUSG00000000037 2.518879e-01 4.515755e-01
+ENSMUSG00000000049           NA           NA
+ENSMUSG00000000056 8.292118e-06 8.546872e-05
+
+###########################################################################3
+##“TRAPped transcripts at Sert+ RGC somas”(11-12) vs “TRAPped transcripts at Brn3b+ RGC somas”(48-49-50)
+res <- results(dds, contrast=list("group2Retina.TRAP.IL","group2Retina.TRAP.CL"))
+head(res)
+log2 fold change (MAP): group2Retina.TRAP.IL vs group2Retina.TRAP.CL 
+Wald test p-value: group2Retina.TRAP.IL vs group2Retina.TRAP.CL 
+DataFrame with 6 rows and 6 columns
+                       baseMean log2FoldChange     lfcSE       stat
+                      <numeric>      <numeric> <numeric>  <numeric>
+ENSMUSG00000000001 7.035147e+03     -0.6217282 0.2291411 -2.7132979
+ENSMUSG00000000028 1.288403e+03      1.6975192 0.4499460  3.7727175
+ENSMUSG00000000031 2.424944e+04      0.3533307 0.5168102  0.6836759
+ENSMUSG00000000037 1.866814e+02      0.7571656 0.6608322  1.1457759
+ENSMUSG00000000049 7.818265e-01      0.0000000 0.3290516  0.0000000
+ENSMUSG00000000056 4.786426e+03     -0.8165994 0.1831967 -4.4574996
+                         pvalue         padj
+                      <numeric>    <numeric>
+ENSMUSG00000000001 6.661718e-03 2.736979e-02
+ENSMUSG00000000028 1.614791e-04 1.135182e-03
+ENSMUSG00000000031 4.941799e-01 6.898645e-01
+ENSMUSG00000000037 2.518879e-01 4.515755e-01
+ENSMUSG00000000049           NA           NA
+ENSMUSG00000000056 8.292118e-06 8.546872e-05
+
+###########################################################################3
+
+# group2 <- c(rep("SrR",3), rep("STR",3),rep("SrA",3),rep("STA",2),rep("BrR",2),rep("BTR",3), rep("BrA",2), rep("BTA",3)) 
+
+GeneCounts <- counts(dds)
+dim(GeneCounts) #todos los genes!
+idx.nz <- apply(GeneCounts, 1, function(x) { all(x > 0)})
+sum(idx.nz)
+head(idx.nz) #todos los genes con reads en todas las muestras!
+
+GeneCounts.norm <- round(counts(dds,normalized=TRUE),2) 
+head(GeneCounts.norm)
+
+
+normal_counts <- GeneCounts.norm
+###normal_counts <- t(t(counts(dds))/sizeFactors)
+
+
+colnames(normal_counts)[1]<-"SrR_45_norm"
+colnames(normal_counts)[2]<-"SrR_46_norm"
+colnames(normal_counts)[3]<-"SrR47_norm"
+colnames(normal_counts)[4]<-"STR_48_norm"
+colnames(normal_counts)[5]<-"STR_49_norm"
+colnames(normal_counts)[6]<-"STR_50_norm"
+colnames(normal_counts)[7]<-"SrA_51_norm"
+colnames(normal_counts)[8]<-"SrA_52_norm"
+colnames(normal_counts)[9]<-"SrA_53_norm"
+colnames(normal_counts)[10]<-"STA_55_norm"
+colnames(normal_counts)[11]<-"STA_56_norm"
+
+colnames(normal_counts)[12] <- "BrR_23_norm"
+colnames(normal_counts)[13] <- "BrR_24_norm"
+colnames(normal_counts)[14] <- "BTR_11_norm"
+colnames(normal_counts)[15] <- "BTR_12_norm"
+colnames(normal_counts)[16] <- "BTR_13_norm"
+colnames(normal_counts)[17] <- "BrA_26_norm"
+colnames(normal_counts)[18] <- "BrA_27_norm"
+colnames(normal_counts)[19] <- "BTA_19_norm"
+colnames(normal_counts)[20] <- "BTA_20_norm"
+colnames(normal_counts)[21] <- "BTA_21_norm"
+
+
+
+head(normal_counts)
+normal_counts <- data.frame(normal_counts)
+
+
+DESeq2Table <- estimateSizeFactors(dds)
+dds1.norm <- estimateDispersions(DESeq2Table)
+
+# Perform the test for diferential expression, using nbinomTest
+DESeq2Table2 <- nbinomWaldTest(dds1.norm)
+DESeq2Res <- results(DESeq2Table2, pAdjustMethod = "BH")
+
+	# Save data results and normalized reads to csv table
+
+write.csv(as.data.frame(resdata1),file="counts.csv")
+resdata1 <- merge(as.data.frame(GeneCounts), as.data.frame(normal_counts), by='row.names',sort=F,all.x=T)
+names(resdata1)[1] <- 'genes'
+head(resdata1)
+
+df<-data.frame(rownames(DESeq2Res),DESeq2Res)
+colnames(df)[1]="genes"
+resdata2 <- as.data.frame(df)
+write.csv(as.data.frame(resdata2),file="results.csv")
+head(df)
+
+genestotales <- merge(df,resdata1, by='genes',sort=F,all.x=T)
+write.csv(as.data.frame(genestotales),file="lista_final_KOvsWT.csv")
+
+
+rld <- rlog(dds,blind=FALSE)
+rld_dataframe <-data.frame(rownames(assay(rld)),assay(rld))
+colnames(rld_dataframe)[1]="genes"
+head(rld_dataframe)
+head(rld_dataframe)[1]
+
+colnames(rld_dataframe)[2]<-"rldHTP45_norm"
+colnames(rld_dataframe)[3]<-"rldHTP46_norm"
+colnames(rld_dataframe)[4]<-"rldHTP47_norm
+colnames(rld_dataframe)[5]<-"rldHTP48_norm"
+colnames(rld_dataframe)[6]<-"rldHTP49_norm"
+colnames(rld_dataframe)[7]<-"rldHTP50_norm"
+colnames(rld_dataframe)[8]<-"rldHTP51_norm"
+colnames(rld_dataframe)[9]<-"rldHTP52_norm"
+colnames(rld_dataframe)[10]<-"rldHTP53_norm"
+colnames(rld_dataframe)[11]<-"rldHTP55_norm"
+colnames(rld_dataframe)[12]<-"rldHTP56_norm"
+
+colnames(rld_dataframe)[13] <- "rld23_norm"
+colnames(rld_dataframe)[14] <- "rld24_norm"
+colnames(rld_dataframe)[15] <- "rld11_norm"
+colnames(rld_dataframe)[16] <- "rld12_norm"
+colnames(rld_dataframe)[17] <- "rld13_norm"
+colnames(rld_dataframe)[18] <- "rld26_norm"
+colnames(rld_dataframe)[19] <- "rld27_norm"
+colnames(rld_dataframe)[20] <- "rld19_norm"
+colnames(rld_dataframe)[21] <- "rld20_norm"
+colnames(rld_dataframe)[22] <- "rld21_norm"
+
+
+write.csv(as.data.frame(rld_dataframe),file="rlog_rld_results_Cell_tyoe.csv")
+genestotales1 <- merge(resdata1,rld_dataframe, by='genes',sort=F,all.x=T)
+names(resdata1)[1] <- 'genes'
+res$genes <- rownames(res)
+
+genestotales2 <- merge(genestotales1,as.data.frame(res), by='genes',sort=F,all.x=T)
+
+anno <- read.csv("annotationMusmu.csv")
+merge <- merge(genestotales2,anno, by='genes', sort=F, all.x=T)
+merge1 <- merge[!duplicated(merge$genes),]
+##res$genes <- rownames(res)
+## merge2 <- merge(merge1, as.data.frame(res), by='genes',sort=F,all.x=T )
+# [1]#write.csv(merge1,"lista_AxonvsSoma_Brn3bTRAP.csv")
+# [2]#write.csv(merge2, "lista_Axonvssoma_brn3bwithResidualsignalaxon.csv")
+# [3]#write.csv(merge1, "lista_Axonvssoma_SertTRAP.csv")
+# [4]#write.csv(merge2, "lista_Axonvssoma_SertTRAPtotal.csv")
+# [5]# write.csv(merge1, "lista_ResidualsignalSoma_Sertvsbrn3b.csv")
+# [6]# write.csv(merge1, "lista_SomaTRAP_Brn3bvsSert.csv")
+# [6]# write.csv(merge1, "lista_SomaTRAP_SertvsBrn3b.csv")
+# [7]#write.csv(merge3, "lista_total_ScreenC_15122017.csv")
+
+cds = estimateDispersions(dds )
+vsdFull = varianceStabilizingTransformation( cds )
+ resultsNames(dds) ## group2
+
+#[1] "Intercept" "group2BrA" "group2BrR" "group2BTA" "group2BTR" "group2SrA"
+#[7] "group2SrR" "group2STA" "group2STR"
+
+pdf("PCA.pdf")
+print(plotPCA(vsdFull, intgroup=c("group2")))
+
+pdf("PCA_AxonvsSoma_Brn3bTRAP.pdf")
+rld.sub <- rld[ , rld$group2 %in% c("BTA", "BTR") ]
+print(plotPCA(rld.sub, intgroup=c("group2")))
+dev.off()
+
+
+pdf("PCA_AxonvsResidualsignal_Brn3bTRAP_2.pdf")
+rld.sub <- rld[ , rld$group2 %in% c("BTA", "BrA") ]
+print(plotPCA(rld.sub, intgroup=c("group2")))
+dev.off()
+
+pdf("PCA_AxonvsSoma_sertTRAP.pdf")
+rld.sub <- rld[ , rld$group2 %in% c("Axon.TRAP.IL", "Retina.TRAP.IL") ]
+print(plotPCA(rld.sub, intgroup=c("group2")))
+dev.off()
+
+pdf("PCA_AxonvsvsResidualsignal_sertTRAP.pdf")
+rld.sub <- rld[ , rld$group2 %in% c("Axon.TRAP.IL", "Axon.Control.IL") ]
+print(plotPCA(rld.sub, intgroup=c("group2")))
+dev.off()
+
+pdf("PCA_Residualsignalsoma_sertTRAPvsBrn3bTRAP.pdf")
+rld.sub <- rld[ , rld$group2 %in% c("Retina.Control.IL", "Retina.Control.CL") ]
+print(plotPCA(rld.sub, intgroup=c("group2")))
+dev.off()
+
+pdf("PCA_soma_Brn3bTRAPva SertTRAP.pdf")
+rld.sub <- rld[ , rld$group2 %in% c("Retina.TRAP.CL", "Retina.TRAP.IL") ]
+print(plotPCA(rld.sub, intgroup=c("group2")))
+dev.off()
+
+
+#In this case, we see not only that the samples cluster by genotype and genetic background but also that PC1 represents genetic #background, and PC2 seems to represent wt vs. mutant genotype.
+
+
+colnames(rld)
+ [1] "Brn3bTRAP_CLs_Axon_HTP20"   "Brn3bTRAP_CLs_Axon_HTP21"  
+ [3] "Brn3bTRAP_CLs_Retina_HTP11" "Brn3bTRAP_CLs_Retina_HTP12"
+ [5] "Ctrl_BT_Axon_CLs_HTP26"     "Ctrl_BT_Axon_CLs_HTP27"    
+ [7] "Ctrl_ST_Axones_ILs_HTP51"   "Ctrl_ST_Axones_ILs_HTP52"  
+ [9] "Ctrl_ST_Axones_ILs_HTP53"   "Ctrl_BT_Retina_CLs_HTP23"  
+[11] "Ctrl_BT_Retina_CLs_HTP24"   "Ctrl_ST_Retina_ILs_HTP45"  
+[13] "Ctrl_ST_Retina_ILs_HTP46"   "Ctrl_ST_Retina_ILs_HTP47"  
+[15] "SertTRAP_ILs_Axones_HTP55"  "SertTRAP_ILs_Axones_HTP56" 
+[17] "SertTRAP_ILs_Retina_HTP48"  "SertTRAP_ILs_Retina_HTP49" 
+[19] "SertTRAP_ILs_Retina_HTP50" 
+
+
+#biocLite("gplots")
+library("gplots")
+library("RColorBrewer")
+library("genefilter")
+pdf("Pearson_somares.pdf")
+distsRL <- dist(t(assay(rld[,c(10,11,12,13,14)])))
+mat <- as.matrix(distsRL)
+
+colnames(mat) <-  samplefiles
+colnames(mat)
+
+# We visualize the distances in a heatmap (Clustering analysis) in a Figure below, using the function pheatmap from the 
+# pheatmap package.
+
+#biocLite("pheatmap")
+library("pheatmap")
+library(RColorBrewer)
+
+colors <- colorRampPalette( rev(brewer.pal(9, "Blues")) )(255)
+pheatmap(mat,
+         clustering_distance_rows=distsRL,
+         clustering_distance_cols=distsRL,
+         col=colors)
+
+dev.off()
+
+
+##################################################################################3
+
+residual <- read.xls("lista_ResidualsignalSoma_Sertvsbrn3b.xls")
+names(residual) <- as.matrix(residual[1, ])
+residual <- residual[-1, ]
+residual[] <- lapply(residual, function(x) type.convert(as.character(x)))
+head(residual)
+
+screenB_Sert <- read.xls("lista_screenBSert_Axonvssoma_serttotal.xls")
+names(screenB_Sert) <- as.matrix(screenB_Sert[1, ])
+screenB_Sert <- screenB_Sert[-1, ]
+screenB_Sert[] <- lapply(screenB_Sert, function(x) type.convert(as.character(x)))
+head(screenB_Sert)
+
+screenA_Brn3b <- read.xls("lista_screenABrn3b_AxonvsSoma_Brn3bTRAPtotal.xls")
+names(screenA_Brn3b) <- as.matrix(screenA_Brn3b[1, ])
+screenA_Brn3b <- screenA_Brn3b[-1, ]
+screenA_Brn3b[] <- lapply(screenA_Brn3b, function(x) type.convert(as.character(x)))
+head(screenA_Brn3b)
+
+merge1 <- merge(screenB_Sert,screenA_Brn3b, by='genes', sort=F, all.x=T)
+merge2 <- merge(merge1,residual, by='genes', sort=F, all.x=T)
+write.csv(merge2, "lista_screenC.csv")
+
+#####################################################################################
