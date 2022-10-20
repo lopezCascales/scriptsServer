@@ -1,0 +1,389 @@
+(Maria Teresa López Cascales) Mayo 2020
+Eloisa Herrera lab
+############################################################################################
+
+ATAC-seq data processing. 
+
+
+scp -P 22222 SRR8454427_1.fastq.gz lab_eh_1@10.128.4.23:/home/LAB/lab_eh_1/atacXiang
+lab_eh_1@10.128.4.23's password: EH1mtlc333
+SRR8454427_1.fastq.gz                                  100%  989MB  98.9MB/s   00:10
+scp -P 22222 SRR8454427_2.fastq.gz lab_eh_1@10.128.4.23:/home/LAB/lab_eh_1/atacXiang
+scp -P 22222 *.fastq.gz lab_eh_1@10.128.4.23:/home/LAB/lab_eh_1/atacXianglab_eh_1@10.128.4.23's password: 
+SRR8454428_1.fastq.gz                                  100% 1027MB 102.7MB/s   00:10    
+SRR8454428_2.fastq.gz                                  100% 1073MB 107.3MB/s   00:10    
+SRR8454429_1.fastq.gz                                  100% 1345MB  96.1MB/s   00:14    
+SRR8454429_2.fastq.gz                                  100% 1299MB  99.9MB/s   00:13    
+SRR8454430_1.fastq.gz                                  100%  729MB 104.2MB/s   00:07    
+SRR8454430_2.fastq.gz                                  100%  713MB 101.9MB/s   00:07
+
+Fastqc  v 0.11.5
+.- moval of reads with poor quality calls and adapters with cutadapt (v. 1.15) with Python (v3.6.9) 
+using default parameters, 
+Sin quitar los adaptadores el alineamiento es practicamente 0%.
+ 
+to eliminate the Truseq-Illumina adapter that we have found.
+AGATCGGAAGAG
+cutadapt -a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA  -A AGATCGGAAGAGCACACGTCTGAACTCCAGTCA -o trimmed.SRR8454427_1.fastq -p trimmed.SRR8454427_2.fastq SRR8454427_1.fastq.gz SRR8454427_2.fastq.gz
+
+This is cutadapt 1.9.1 with Python 2.7.12
+Command line parameters: -a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA SRR8454427.fastq
+Trimming 1 adapter with at most 10.0% errors in single-end mode ...
+=== Summary ===
+
+Total read pairs processed:         13,832,475
+  Read 1 with adapter:                 301,315 (2.2%)
+  Read 2 with adapter:                 380,247 (2.7%)
+Pairs written (passing filters):    13,832,475 (100.0%)
+
+Total basepairs processed: 4,149,742,500 bp
+  Read 1: 2,074,871,250 bp
+  Read 2: 2,074,871,250 bp
+Total written (filtered):  4,146,819,207 bp (99.9%)
+  Read 1: 2,073,315,193 bp
+  Read 2: 2,073,504,014 bp
+
+To eliminate  Nextera Transposase Sequence
+cutadapt -a CTTATACACATCTCCGAGCCCACGAGACTAAGGCGAATCTCGTATGCCGT  -A CTTATACACATCTCCGAGCCCACGAGACTAAGGCGAATCTCGTATGCCGT -o trimmed.SRR8454427_1_v2.fastq -p trimmed.SRR8454427_2_v2.fastq trimmed.SRR8454427_1.fastq trimmed.SRR8454427_2.fastq
+
+reads from ATAC-seq datasets were mapped to the mouse mm10 reference genome using Bowtie2 (v. 2.2.2) (ref. xxx) with the parameters: --t --q --N 1 --L 25. 
+Multiple mapped reads and PCR duplicates were further removed with a javascript (MarkDuplicates.jar). 
+
+# better alignment results are frequently achieved with --very-sensitive (-D 20 -R 3 -N 0 -L 20 -i S,1,0.50)
+# use -X 2000: to allow larger fragment size (default is 500)
+# N:  max # mismatches in seed alignment; can be 0 or 1
+# L: length of seed substrings; must be >3,
+# no-discordant:suppress discordant alignments for paired reads
+# p: number of alignment threads to launch: number of processes to spawn on your CPU during the the alignment process
+# no mixed: suppress unpaired alignments for paired reads
+# un-conc: write pairs that didn't align concordantly 
+
+
+#source activate in202002
+#(in202002) [lab_eh_1@NeuroServer atacXiang]$ bowtie2
+#No index, query, or output file specified!
+#Bowtie 2 version 2.3.5 by Ben Langmead (langmea@cs.jhu.edu, www.cs.jhu.edu/~langmea)
+#Usage: 
+
+bowtie2 --very-sensitive  -N 1 -L 25 -X 2000 -p 20 -x /home/DATA/index/bowtie2/mm10/mm10 -1 trimmed.SRR8454427_1_v2.fastq -2 trimmed.SRR8454427_2_v2.fastq --un-conc  ATAC_E65_epi_opt1.still_unaligned.fastq| samtools view -bS - > ATAC_E65_epi_rep1_Xiang_v2.bam
+
+# 13832475 reads; of these:
+#  13832475 (100.00%) were paired; of these:
+#    7185076 (51.94%) aligned concordantly 0 times
+#    4924621 (35.60%) aligned concordantly exactly 1 time
+#    1722778 (12.45%) aligned concordantly >1 times
+#    ----
+#    7185076 pairs aligned concordantly 0 times; of these:
+#      874554 (12.17%) aligned discordantly 1 time
+#    ----
+#    6310522 pairs aligned 0 times concordantly or discordantly; of these:
+#      12621044 mates make up the pairs; of these:
+#        6373657 (50.50%) aligned 0 times
+#       3931860 (31.15%) aligned exactly 1 time
+#        2315527 (18.35%) aligned >1 times
+#76.96% overall alignment rate
+
+
+option 2
+bowtie2  --very-sensitive --no-discordant -p 20 --no-mixed -N 1 -L 25 -X 2000 --un-conc  ATAC_E65_epi_opt2.still_unaligned.fastq -x /home/DATA/index/bowtie2/mm10/mm10  -1 trimmed.SRR8454427_1_v2.fastq -2 trimmed.SRR8454427_2_v2.fastq| samtools view -bS -q 30 - >  ATAC_E65_Epi_opt2_rep1_Xiang.bam
+#13832475 reads; of these:
+#  13832475 (100.00%) were paired; of these:
+#    7185076 (51.94%) aligned concordantly 0 times
+#    4924621 (35.60%) aligned concordantly exactly 1 time
+#    1722778 (12.45%) aligned concordantly >1 times
+#48.06% overall alignment rate
+
+#Nos quedamos con la opcion 1, que conseguimos un mejor ratio de alineamiento para ATACseq  aprox 80%
+
+#########################################################################################################           
+
+cutadapt -a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA  -A AGATCGGAAGAGCACACGTCTGAACTCCAGTCA -o trimmed.SRR8454428_1.fastq -p trimmed.SRR8454428_2.fastq SRR8454428_1.fastq.gz SRR8454428_2.fastq.gz
+cutadapt -a CTTATACACATCTCCGAGCCCACGAGACTAAGGCGAATCTCGTATGCCGT  -A CTTATACACATCTCCGAGCCCACGAGACTAAGGCGAATCTCGTATGCCGT -o trimmed.SRR8454428_1_v2.fastq -p trimmed.SRR8454428_2_v2.fastq trimmed.SRR8454428_1.fastq trimmed.SRR8454428_2.fastq
+#bowtie2
+#15032581 reads; of these:
+#  15032581 (100.00%) were paired; of these:
+#    8960613 (59.61%) aligned concordantly 0 times
+#    4687945 (31.19%) aligned concordantly exactly 1 time
+#    1384023 (9.21%) aligned concordantly >1 times
+#    ----
+#    8960613 pairs aligned concordantly 0 times; of these:
+#      1022808 (11.41%) aligned discordantly 1 time
+#   ----
+#    7937805 pairs aligned 0 times concordantly or discordantly; of these:
+#      15875610 mates make up the pairs; of these:
+#        8399787 (52.91%) aligned 0 times
+#        5123307 (32.27%) aligned exactly 1 time
+#        2352516 (14.82%) aligned >1 times
+#72.06% overall alignment rate
+
+cutadapt -a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA  -A AGATCGGAAGAGCACACGTCTGAACTCCAGTCA -o trimmed.SRR8454429_1.fastq -p trimmed.SRR8454429_2.fastq SRR8454429_1.fastq.gz SRR8454429_2.fastq.gz
+cutadapt -a CTTATACACATCTCCGAGCCCACGAGACTAAGGCGAATCTCGTATGCCGT  -A CTTATACACATCTCCGAGCCCACGAGACTAAGGCGAATCTCGTATGCCGT -o trimmed.SRR8454429_1_v2.fastq -p trimmed.SRR8454429_2_v2.fastq trimmed.SRR8454429_1.fastq trimmed.SRR8454429_2.fastq
+bowtie2  --very-sensitive  -p 60  -N 1 -L 25 -X 2000 --un-conc  ATAC_E65_epi_opt2_rep3.still_unaligned.fastq -x /home/DATA/index/bowtie2/mm10/mm10  -1 trimmed.SRR8454429_1_v2.fastq -2 trimmed.SRR8454429_2_v2.fastq| samtools view -bS -q 30 - >  ATAC_E65_Epi_opt2_rep3_Xiang.bam
+#17465876 reads; of these:
+#  17465876 (100.00%) were paired; of these:
+#    7707265 (44.13%) aligned concordantly 0 times
+#    6637732 (38.00%) aligned concordantly exactly 1 time
+#    3120879 (17.87%) aligned concordantly >1 times
+#    ----
+#    7707265 pairs aligned concordantly 0 times; of these:
+#      1434719 (18.62%) aligned discordantly 1 time
+#    ----
+#    6272546 pairs aligned 0 times concordantly or discordantly; of these:
+#      12545092 mates make up the pairs; of these:
+#        7392220 (58.93%) aligned 0 times
+#        2720456 (21.69%) aligned exactly 1 time
+#        2432416 (19.39%) aligned >1 times
+#78.84% overall alignment rate
+
+
+# Merge trimmed results
+samtools merge ATAC_E65_Epi.merged.bam ATAC_E65_Epi_opt2_rep1_Xiang.bam   ATAC_E65_Epi_opt2_rep3_Xiang.bam
+
+# Retain only aligned pairs based on BAM flags
+samtools view -b -F 4 ATAC_E65_Epi.merged.bam > ATAC_E65_Epi.mapped.bam
+
+# Sort mapped reads
+samtools sort -o ATAC_E65_Epi.srt.bam ATAC_E65_Epi.mapped.bam 
+
+# Remove duplicates
+samtools rmdup ATAC_E65_Epi.srt.bam ATAC_E65_Epi.rmd.srt.bam 
+
+# eliminar reads del ChrM
+#Mitochondrial reads
+#Ref: Harvard FAS Informatics - ATAC-seq Guidelines
+#Since there are no ATAC-seq peaks of interest in the mitochondrial genome, these reads will only complicate the subsequent steps. 
+#Therefore, we recommend that they be removed from further analysis, via one of the following methods:
+#Remove the mitochondrial genome from the reference genome before aligning the reads. In human/mouse genome builds, the mitochondrial #genome is labeled ‘chrM’. That sequence can be deleted from the reference prior to building the genome indexes. The downside of this #approach is that the alignment numbers will look much worse; all of the mitochondrial reads will count as unaligned.
+#Since the percentage of mtDNA-reads is a indicator of library quality, we usually remove mitochondrial reads after alignment. It is run #as follows:
+
+#module load ATAC-seq samtools   # if not already loaded
+samtools view -h ATAC_E65_Epi.rmd.srt.bam | grep -v chrM | samtools view -b - >  ATAC_E65_Epi_rmChrM_Xiang.bam
+# samtools view -h  ATAC_E65_Epi.rmd.srt.bam  |  removeChrom - - chrM  |  samtools view -b - >  ATAC_E65_Epi_noChrM_Xiang.bam
+
+samtools view -h  ATAC_E65_Epi_rmChrM_Xiang.bam  |  BAMtoBED  -i -  -o ATAC_E65_Epi_noChrM_Xiang.bed  -x  -v
+
+##################################################################################
+Peak calling
+
+#macs2 callpeak  -t ATAC_E65_Epi_rmChrM_Xiang.bed  -f BEDPE  -n ATAC_E65_Epi_noChrM_Xiang_bed  -g mm  --keep-dup all --bw BW --nomodel -q #0.1 --broad
+
+macs2 callpeak  -t ATAC_E65_Epi_rmChrM_Xiang.bam  -f BAMPE  -n ATAC_E65_Epi_noChrM_Xiang_broadBAM  -g mm  --keep-dup all  --nomodel -q 0.1 --broad
+# ARGUMENTS LIST:
+# name = ATAC_E65_Epi_noChrM_Xiang_broadBAM
+# format = BAMPE
+# ChIP-seq file = ['ATAC_E65_Epi_rmChrM_Xiang.bam']
+# control file = None
+# effective genome size = 1.87e+09
+# band width = 300
+# model fold = [5, 50]
+# qvalue cutoff for narrow/strong regions = 1.00e-01
+# qvalue cutoff for broad/weak regions = 1.00e-01
+# The maximum gap between significant sites is assigned as the read length/tag size.
+# The minimum length of peaks is assigned as the predicted fragment length "d".
+# Larger dataset will be scaled towards smaller dataset.
+# Range for calculating regional lambda is: 10000 bps
+# Broad region calling is on
+# Paired-End mode is on
+ 
+INFO  @ Thu, 14 May 2020 12:25:02: #1 read fragment files... 
+INFO  @ Thu, 14 May 2020 12:25:02: #1 read treatment fragments... 
+INFO  @ Thu, 14 May 2020 12:25:13:  1000000 
+INFO  @ Thu, 14 May 2020 12:25:23:  2000000 
+INFO  @ Thu, 14 May 2020 12:25:34:  3000000 
+INFO  @ Thu, 14 May 2020 12:25:44:  4000000 
+INFO  @ Thu, 14 May 2020 12:25:55:  5000000 
+INFO  @ Thu, 14 May 2020 12:26:05:  6000000 
+INFO  @ Thu, 14 May 2020 12:26:16:  7000000 
+INFO  @ Thu, 14 May 2020 12:26:26:  8000000 
+INFO  @ Thu, 14 May 2020 12:26:38: #1 mean fragment size is determined as 287.9 bp from treatment 
+INFO  @ Thu, 14 May 2020 12:26:38: #1 fragment size = 287.9 
+INFO  @ Thu, 14 May 2020 12:26:38: #1  total fragments in treatment: 8812049 
+INFO  @ Thu, 14 May 2020 12:26:38: #1 finished! 
+INFO  @ Thu, 14 May 2020 12:26:38: #2 Build Peak Model... 
+INFO  @ Thu, 14 May 2020 12:26:38: #2 Skipped... 
+INFO  @ Thu, 14 May 2020 12:26:38: #3 Call peaks... 
+INFO  @ Thu, 14 May 2020 12:26:38: #3 Call broad peaks with given level1 -log10qvalue cutoff and level2: 1.000000, 1.000000... 
+INFO  @ Thu, 14 May 2020 12:26:38: #3 Pre-compute pvalue-qvalue table... 
+INFO  @ Thu, 14 May 2020 12:27:04: #3 Call peaks for each chromosome... 
+INFO  @ Thu, 14 May 2020 12:27:26: #4 Write output xls file... ATAC_E65_Epi_noChrM_Xiang_broadBAM_peaks.xls 
+INFO  @ Thu, 14 May 2020 12:27:27: #4 Write broad peak in broadPeak format file... ATAC_E65_Epi_noChrM_Xiang_broadBAM_peaks.broadPeak 
+INFO  @ Thu, 14 May 2020 12:27:27: #4 Write broad peak in bed12/gappedPeak format file... ATAC_E65_Epi_noChrM_Xiang_broadBAM_peaks.gappedPeak 
+INFO  @ Thu, 14 May 2020 12:27:27: Done! 
+
+macs2 callpeak  -t ATAC_E65_Epi_rmChrM_Xiang.bam  -f BAMPE  -n ATAC_E65_Epi_noChrM_Xiang_BAM  -g mm  --keep-dup all  --nomodel -q 0.1 
+# ARGUMENTS LIST:
+# name = ATAC_E65_Epi_noChrM_Xiang_BAM
+# format = BAMPE
+# ChIP-seq file = ['ATAC_E65_Epi_rmChrM_Xiang.bam']
+# control file = None
+# effective genome size = 1.87e+09
+# band width = 300
+# model fold = [5, 50]
+# qvalue cutoff = 1.00e-01
+# The maximum gap between significant sites is assigned as the read length/tag size.
+# The minimum length of peaks is assigned as the predicted fragment length "d".
+# Larger dataset will be scaled towards smaller dataset.
+# Range for calculating regional lambda is: 10000 bps
+# Broad region calling is off
+# Paired-End mode is on
+ 
+INFO  @ Thu, 14 May 2020 12:27:53: #1 read fragment files... 
+INFO  @ Thu, 14 May 2020 12:27:53: #1 read treatment fragments... 
+INFO  @ Thu, 14 May 2020 12:28:04:  1000000 
+INFO  @ Thu, 14 May 2020 12:28:14:  2000000 
+INFO  @ Thu, 14 May 2020 12:28:25:  3000000 
+INFO  @ Thu, 14 May 2020 12:28:35:  4000000 
+INFO  @ Thu, 14 May 2020 12:28:45:  5000000 
+INFO  @ Thu, 14 May 2020 12:28:56:  6000000 
+INFO  @ Thu, 14 May 2020 12:29:06:  7000000 
+INFO  @ Thu, 14 May 2020 12:29:16:  8000000 
+INFO  @ Thu, 14 May 2020 12:29:28: #1 mean fragment size is determined as 287.9 bp from treatment 
+INFO  @ Thu, 14 May 2020 12:29:28: #1 fragment size = 287.9 
+INFO  @ Thu, 14 May 2020 12:29:28: #1  total fragments in treatment: 8812049 
+INFO  @ Thu, 14 May 2020 12:29:28: #1 finished! 
+INFO  @ Thu, 14 May 2020 12:29:28: #2 Build Peak Model... 
+INFO  @ Thu, 14 May 2020 12:29:28: #2 Skipped... 
+INFO  @ Thu, 14 May 2020 12:29:28: #3 Call peaks... 
+INFO  @ Thu, 14 May 2020 12:29:28: #3 Pre-compute pvalue-qvalue table... 
+INFO  @ Thu, 14 May 2020 12:29:53: #3 Call peaks for each chromosome... 
+INFO  @ Thu, 14 May 2020 12:30:09: #4 Write output xls file... ATAC_E65_Epi_noChrM_Xiang_BAM_peaks.xls 
+INFO  @ Thu, 14 May 2020 12:30:09: #4 Write peak in narrowPeak format file... ATAC_E65_Epi_noChrM_Xiang_BAM_peaks.narrowPeak 
+INFO  @ Thu, 14 May 2020 12:30:09: #4 Write summits bed file... ATAC_E65_Epi_noChrM_Xiang_BAM_summits.bed 
+INFO  @ Thu, 14 May 2020 12:30:09: Done! 
+
+scp -P 22222 lab_eh_1@10.128.4.23:/home/LAB/lab_eh_1/atacXiang/ATAC_E65_Epi_noChrM_* /media/angel/d82a0508-2962-4e4a-8aa0-f444e7cdf1f1/AIDA_CRUZ_project/xian2020
+lab_eh_1@10.128.4.23's password: 
+ATAC_E65_Epi_rmChrM_Xiang.bam                 100% 1696MB  89.3MB/s   00:19    
+ATAC_E65_Epi_noChrM_Xiang_BAM_peaks.narrowPea 100% 3857KB   3.8MB/s   00:00 
+ATAC_E65_Epi_noChrM_Xiang_BAM_peaks.xls       100% 4247KB   4.2MB/s   00:00 40033 peaks      
+ATAC_E65_Epi_noChrM_Xiang_BAM_summits.bed     100% 2852KB   2.8MB/s   00:00    
+ATAC_E65_Epi_noChrM_Xiang_broadBAM_peaks.broa 100% 3986KB   3.9MB/s   00:00    
+ATAC_E65_Epi_noChrM_Xiang_broadBAM_peaks.gapp 100% 5189KB   5.1MB/s   00:00    
+ATAC_E65_Epi_noChrM_Xiang_broadBAM_peaks.xls  100% 4177KB   4.1MB/s   00:00 41256 peaks
+##########################################################################################################
+BAM to bigWig
+samtools index ATAC_E65_Epi_rmChrM_Xiang.bam 
+bamCoverage -b ATAC_E65_Epi_rmChrM_Xiang.bam -o ATAC_E65_Epi_rmChrM_Xiang.bw
+
+minFragmentLength: 0
+verbose: False
+out_file_for_raw_data: None
+numberOfSamples: None
+bedFile: None
+bamFilesList: ['ATAC_E65_Epi_rmChrM_Xiang.bam']
+numberOfProcessors: 1
+samFlag_exclude: None
+save_data: False
+stepSize: 50
+smoothLength: None
+blackListFileName: None
+center_read: False
+skipZeroOverZero: False
+ignoreDuplicates: False
+defaultFragmentLength: read length
+chrsToSkip: []
+region: None
+maxPairedFragmentLength: 1000
+samFlag_include: None
+binLength: 50
+bed_and_bin: False
+zerosToNans: False
+minMappingQuality: None
+maxFragmentLength: 0
+
+
+samtools flagstats ATAC_E65_Epi_rmChrM_Xiang.bam
+19914757 + 0 in total (QC-passed reads + QC-failed reads)
+0 + 0 secondary
+0 + 0 supplementary
+0 + 0 duplicates
+19914757 + 0 mapped (100.00% : N/A)
+19914757 + 0 paired in sequencing
+10438669 + 0 read1
+9476088 + 0 read2
+17624100 + 0 properly paired (88.50% : N/A)
+18876514 + 0 with itself and mate mapped
+1038243 + 0 singletons (5.21% : N/A)
+3440 + 0 with mate mapped to a different chr
+3440 + 0 with mate mapped to a different chr (mapQ>=5)
+
+###########################################################################################################
+(base) angel@storm:/media/angel/d82a0508-2962-4e4a-8aa0-f444e7cdf1f1/AIDA_CRUZ_project/xian2020/ATAC_E65_Epi_noChrM$ scp -P 22222 lab_eh_1@10.128.4.23:/home/LAB
+/lab_eh_1/atacXiang/ATAC_E65_epi_opt2_rep* /media/angel/d82a0508-2962-4e4a-8aa0-f444e7cdf1f1/AIDA_CRUZ_project/xian2020
+lab_eh_1@10.128.4.23's password: 
+ATAC_E65_epi_opt2_rep2.still_unaligned.1.fast 100% 1838MB  83.6MB/s   00:22    
+ATAC_E65_epi_opt2_rep2.still_unaligned.2.fast 100% 2847MB  86.3MB/s   00:33    
+ATAC_E65_epi_opt2_rep3.still_unaligned.1.fast 100% 1986MB  82.8MB/s   00:24    
+ATAC_E65_epi_opt2_rep3.still_unaligned.2.fast 100% 2446MB  84.3MB/s   00:29    
+(base) angel@storm:/media/angel/d82a0508-2962-4e4a-8aa0-f444e7cdf1f1/AIDA_CRUZ_project/xian2020/ATAC_E65_Epi_noChrM$ scp -P 22222 lab_eh_1@10.128.4.23:/home/LAB
+/lab_eh_1/atacXiang/ATAC_E65_epi_opt2.s* /media/angel/d82a0508-2962-4e4a-8aa0-f444e7cdf1f1/AIDA_CRUZ_project/xian2020
+lab_eh_1@10.128.4.23's password: 
+ATAC_E65_epi_opt2.still_unaligned.1.fastq     100% 1531MB  90.0MB/s   00:17    
+ATAC_E65_epi_opt2.still_unaligned.2.fastq     100% 2281MB  84.5MB/s   00:27    
+(base) angel@storm:/media/angel/d82a0508-2962-4e4a-8aa0-f444e7cdf1f1/AIDA_CRUZ_project/xian2020/ATAC_E65_Epi_noChrM$ scp -P 22222 lab_eh_1@10.128.4.23:/home/LAB
+/lab_eh_1/atacXiang/*_Xiang.bam  /media/angel/d82a0508-2962-4e4a-8aa0-f444e7cdf1f1/AIDA_CRUZ_project/xian2020
+lab_eh_1@10.128.4.23's password: 
+Permission denied, please try again.
+lab_eh_1@10.128.4.23's password:   
+ATAC_E65_Epi_opt2_rep1_Xiang.bam              100% 1050MB  87.5MB/s   00:12    
+ATAC_E65_Epi_opt2_rep2_Xiang.bam              100% 1126MB  86.6MB/s   00:13    
+ATAC_E65_Epi_opt2_rep3_Xiang.bam              100% 1648MB  82.4MB/s   00:20    
+ATAC_E65_Epi_rmChrM_Xiang.bam                 100% 1696MB  84.8MB/s   00:20    
+(base) angel@storm:/media/angel/d82a0508-2962-4e4a-8aa0-f444e7cdf1f1/AIDA_CRUZ_project/xian2020/ATAC_E65_Epi_noChrM$ scp -P 22222 lab_eh_1@10.128.4.23:/home/LAB
+/lab_eh_1/atacXiang/ATAC_E65_Epi_rmChrM_Xiang.bam.bai  /media/angel/d82a0508-2962-4e4a-8aa0-f444e7cdf1f1/AIDA_CRUZ_project/xian2020
+lab_eh_1@10.128.4.23's password: 
+ATAC_E65_Epi_rmChrM_Xiang.bam.bai             100% 1927KB   1.9MB/s   00:00    
+(base) angel@storm:/media/angel/d82a0508-2962-4e4a-8aa0-f444e7cdf1f1/AIDA_CRUZ_project/xian2020/ATAC_E65_Epi_noChrM$ scp -P 22222 lab_eh_1@10.128.4.23:/home/LAB
+/lab_eh_1/atacXiang/ATAC_E65_Epi_rmChrM_Xiang.bw  /media/angel/d82a0508-2962-4e4a-8aa0-f444e7cdf1f1/AIDA_CRUZ_project/xian2020
+lab_eh_1@10.128.4.23's password: 
+ATAC_E65_Epi_rmChrM_Xiang.bw                  100%   91MB  91.4MB/s   00:01    
+####################################################################
+
+# FeatureCounts, y convertir los bed en SAF
+
+# scp -P 22222 ATAC_E65_Epi_rmChrM_Xiang.bam lab_eh_1@10.128.4.23:/home/LAB/lab_eh_1/atacXiang
+
+fc1 <- featureCounts('ATAC_E65_Epi_rmChrM_Xiang.bam',annot.inbuilt = 'mm10', isPairedEnd = TRUE, autosort = TRUE, useMetaFeatures = TRUE, allowMultiOverlap =TRUE, nthreads =12, reportReads =TRUE)
+write.table(x=data.frame(fc1$annotation[,c('GeneID', 'Length')], fc1$counts, stringsAsFactors =FALSE), file = 'merge_Epi_E65_fc.txt', quote =FALSE, sep = '\t', row.names=FALSE)
+
+-p If specified, fragments (or templates) will be counted instead of reads. This option is only applicable for paired-end reads.
+-T Number of the threads. 1 by default.
+-J Count number of reads supporting each exon-exon junction.Junctions were identified from those exon-spanning reads
+                      in the input (containing 'N' in CIGAR string). Counting results are saved to a file named '<output_file>.jcounts'
+
+
+featureCounts  -p -T 20 -J -a *.gtf -o merge_Epi_E65_fc.txt ATAC_E65_Epi_rmChrM_Xiang.bam
+in terminal 
+featureCounts -a 
+###########################################################################################
+ 
+#Esto nos asignará los reads mapeados a las meta-features genomicas. (feature=rango o posición). en nuestro caso, ponemos allowMultiOverlap como TRUE,
+ya que estos reads podrían inferir que puedan regular las funciones biológicas de todos los genes overlapping.
+Obtenemos un archivo en el que englobamos los genes (metafeatures) con su geneID (entrez), la longitud de la region genomica cubierta y el numero de counts que han caido sobre esa region 
+
+The bedtools command should extract the paired-end alignments as bedpe format, then the awk command should shift the fragments as needed
+
+bedtools bamtobed -bedpe -i ATAC_E65_Epi_rmChrM_Xiang.bam  > ATAC_E65_Epi_rmChrM_Xiang.bed
+
+bedtools bamtobed -i ATAC_E65_Epi_rmChrM_Xiangreads.bam -bedpe  
+awk -v OFS="\t" '{($9=="+"){print $1,$2+4,$6+4} \
+  ($9=="-"){print $1,$2-5,$6-5}}' > ATAC_E65_Epi_rmChrM_Xiang2.bed
+
+#################################################################################################
+
+
+I have two ATAC-Seq peak samples for the same subject. I want to quantify the ATAC-Seq peaks within a defined area around TSS for each of those samples. Then I want to compare the scores to find out which of the two samples has more open chromatin region within that area around TSS?
+
+Alex Reynolds 
+Given a set of intervals and a set of peaks with some score value, 
+you could use BEDOPS bedmap --max-element or bedmap --max to get the maximum scoring peak over the interval, 
+or just the maximum score, respectively:
+
+$ bedmap --echo --max-element --delim '\t' intervals.bed peaks.bed > answer.bed
+
+If you're looking for measured size or other peak features, there are other operators like --echo-map-size, --count, etc. that offer mapping of those results. Feel free to clarify what you're after, or take a look at the documentation or bedmap --help
+
+################################################################################################
+
+
+
