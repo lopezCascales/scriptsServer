@@ -1,0 +1,867 @@
+alignment STAR o HISAT2 to obtain the bam files
+samtools to sort and index the bam files
+bw: (devtools) bamCoverage -of bigwig -bs 10 --normalizeUsing RPKM -b *.bam -o *_ht2.bw -p 20
+
+#################################################################################
+First aproximation of RPKM values
+doi.org/10.1371/journal.pcbi.1000598
+An abundance of Ubiquitously Expressed Genes revealed by tissue transcriptome sequence data.
+
+- primera aroximacion : es ratio TRAP/(residual+1) =TRAP1
+- segunda aproximacion: es TRAP1axon/(TRAP1soma+1)= AXON1
+- tercera aproximacion; AXON 1 quitando aquellos del SOMA (con ratio >1)
+  (Enriquecidos en el Axon)
+##################################################################################
+(limma package)
+Statistics for Differential Expression
+
+A number of summary statistics are computed by the eBayes() function for each gene and each contrast. The M-value (M) is the log2-fold change, or sometimes the log2-expression level, for that gene. The A-value (A) is the the average expression level for that gene across all the samples. The moderated t-statistic (t) is the ratio of the M-value to its standard error. This has the same interpretation as an ordinary t-statistic except that the standard errors have been moderated across genes, effectively borrowing information from the ensemble of genes to aid with inference about each individual gene. The ordinary t-statistics are not usually required or recommended, but they can be recovered by
+
+> tstat.ord <- fit$coef / fit$stdev.unscaled / fit$sigma
+
+after fitting a linear model. The ordinary t-statistic p-values can be recovered by
+
+> tstat.ord.p.value <- 2*pt( abs(tstat.ord), df=fit$df.residual, lower.tail=FALSE)
+
+The ordinary t-statistic is on fit$df.residual degrees of freedom while the moderated t-statistic is on fit$df.residual+fit$df.prior degrees of freedom.
+
+The p-value (p-value) is obtained from the moderated t-statistic, usually after some form of adjustment for multiple testing. The most popular form of adjustment is "fdr" which is Benjamini and Hochberg's method to control the false discovery rate. The meaning of the adjusted p-value is as follows. If you select all genes with p-value below a given value, say 0.05, as differentially expression, then the expected proportion of false discoveries in the selected group should be less than that value, in this case less than 5%.
+
+The B-statistic (lods or B) is the log-odds that that gene is differentially expressed. Suppose for example that B=1.5. The odds of differential expression is exp(1.5)=4.48, i.e, about four and a half to one. The probability that the gene is differentially expressed is 4.48/(1+4.48)=0.82, i.e., the probability is about 82% that this gene is differentially expressed. A B-statistic of zero corresponds to a 50-50 chance that the gene is differentially expressed. The B-statistic is automatically adjusted for multiple testing by assuming that 1% of the genes, or some other percentage specified by the user, are expected to be differentially expressed. If there are no missing values in your data, then the moderated t  and B statistics will rank the genes in exactly the same order. Even you do have spot weights or missing data, the p-values and B-statistics will usually provide a very similar ranking of the genes.
+
+Please keep in mind that the moderated t-statistic p-values and the B-statistic probabilities depend on various sorts of mathematical assumptions which are never exactly true for microarray data. The B-statistics also depend on a prior guess for the proportion of differentially expressed genes. Therefore they are intended to be taken as a guide rather than as a strict measure of the probability of differential expression. Of the three statistics, the moderated-t, the associated p-value and the B-statistics, we usually base our gene selections on the p-value. All three measures are closely related, but the moderated-t and its p-value do not require a prior guess for the number of differentially expressed genes.
+
+The above mentioned statistics are computed for every contrast for each gene. The eBayes() function computes one more useful statistic. The moderated F-statistic (F) combines the t-statistics for all the contrasts for each gene into an overall test of significance for that gene. The moderated F-statistic tests whether any of the contrasts are non-zero for that gene, i.e., whether that gene is differentially expressed on any contrast. The moderated-F has numerator degrees of freedom equal to the number of contrasts and denominator degrees of freedom the same as the moderated-t. Its p-value is stored as fit$F.p.value. It is similar to the ordinary F-statistic from analysis of variance except that the denominator mean squares are moderated across genes.
+
+In complex experiments with many closely related contrasts, it may sometimes be desirable to adjust p-values across contrasts as well as across genes. The function decideTests() provides several methods to do this (see the Section "Multiple Testing Across Contrasts" in the limma User's Guide).
+
+
+Merge values of candidates by rpkm values ratios with statistical differential expression to obtain the final candidates table.
+
+
+##################################################################################
+
+ directory <-"/home/mayte/Escritorio/vero/counts_STAR"
+ setwd(directory)
+
+library(biomaRt)
+library(limma)
+library(edgeR)
+
+## other packages
+library("GenomicAlignments")
+library("BiocParallel")
+library("DESeq2")
+library("GenomicFeatures")
+Biocpkg("genefilter")
+library(genefilter)
+library(BiocStyle)
+library(rmarkdown)
+library(geneplotter)
+library(ggplot2)
+library(plyr)
+library(LSD)
+library(DESeq2)
+library(gplots)
+library(RColorBrewer)
+library(stringr)
+library(topGO)
+library(genefilter)
+library(dplyr)
+library(EDASeq)
+library(fdrtool)
+library(org.Mm.eg.db)
+library(topGO)
+library(genefilter)
+
+################################################################################################
+## Obtain de count matrix
+
+datosBResCH1<-read.table("E135_CH1_starReadsPerGene.out.tab.txt",header=F)
+datosBResCH2<-read.table("E135_CH2_starReadsPerGene.out.tab.txt",header=F)
+datosBResCH3<-read.table("E135_CH3_starReadsPerGene.out.tab.txt",header=F)
+datosBResret1<-read.table("E135_ret1_starReadsPerGene.out.tab.txt",header=F)
+datosBResret2<-read.table("E135_ret2_starReadsPerGene.out.tab.txt",header=F)
+datosBResret3<-read.table("E135_ret3_starReadsPerGene.out.tab.txt",header=F)
+datosSResret1<-read.table("E155_ret1_starReadsPerGene.out.tab.txt",header=F)
+datosSResret2<-read.table("E155_ret2_starReadsPerGene.out.tab.txt",header=F)
+datosSResret3<-read.table("E155_ret3_starReadsPerGene.out.tab.txt",header=F)
+datosSResCH1<-read.table("E155_CH1_starReadsPerGene.out.tab.txt",header=F)
+datosSResCH2<-read.table("E155_CH2_starReadsPerGene.out.tab.txt",header=F)
+datosSResCH3<-read.table("E155_CH3_starReadsPerGene.out.tab.txt",header=F)
+BTCH1<-read.table("HTP19starReadsPerGene.out.tab.txt",header=F)
+BTCH2<-read.table("HTP20starReadsPerGene.out.tab.txt",header=F)
+BTCH3<-read.table("HTP21starReadsPerGene.out.tab.txt",header=F)
+BTret1<-read.table("HTP11starReadsPerGene.out.tab.txt",header=F)
+BTret2<-read.table("HTP12starReadsPerGene.out.tab.txt",header=F)
+BTret3<-read.table("HTP13starReadsPerGene.out.tab.txt",header=F)
+STCH1<-read.table("HTP55starReadsPerGene.out.tab.txt",header=F)
+STCH2<-read.table("HTP56starReadsPerGene.out.tab.txt",header=F)
+STret1<-read.table("HTP48starReadsPerGene.out.tab.txt",header=F)
+STret2<-read.table("HTP49starReadsPerGene.out.tab.txt",header=F)
+STret3<-read.table("HTP50starReadsPerGene.out.tab.txt",header=F)
+
+m_datosBResCH1<-datosBResCH1[,c(1,2)]
+m_datosBResCH2<-datosBResCH2[,c(1,2)]
+m_datosBResCH3<-datosBResCH3[,c(1,2)]
+m_datosBResret1<-datosBResret1[,c(1,2)]
+m_datosBResret2<-datosBResret2[,c(1,2)]
+m_datosBResret3<-datosBResret3[,c(1,2)]
+m_datosSResret1<-datosSResret1[,c(1,2)]
+m_datosSResret2<-datosSResret2[,c(1,2)]
+m_datosSResret3<-datosSResret3[,c(1,2)]
+m_datosSResCH1<-datosSResCH1[,c(1,2)]
+m_datosSResCH2<-datosSResCH2[,c(1,2)]
+m_datosSResCH3<-datosSResCH3[,c(1,2)]
+m_BTCH1<-BTCH1[,c(1,2)]
+m_BTCH2<-BTCH2[,c(1,2)]
+m_BTCH3<-BTCH3[,c(1,2)]
+m_BTret1<-BTret1[,c(1,2)]
+m_BTret2<-BTret2[,c(1,2)]
+m_BTret3<-BTret3[,c(1,2)]
+m_STCH1<-STCH1[,c(1,2)]
+m_STCH2<-STCH2[,c(1,2)]
+m_STret1<-STret1[,c(1,2)]
+m_STret2<-STret2[,c(1,2)]
+m_STret3<-STret3[,c(1,2)]
+
+
+names(m_datosBResCH1)[2]<-"BResCH1"
+names(m_datosBResCH2)[2]<-"BResCH2"
+names(m_datosBResCH3)[2]<-"BResCH3"
+names(m_datosBResret1)[2]<-"BResret1"
+names(m_datosBResret2)[2]<-"BResret2"
+names(m_datosBResret3)[2]<-"BResret3"
+names(m_datosSResret1)[2]<-"SResret1"
+names(m_datosSResret2)[2]<-"SResret2"
+names(m_datosSResret3)[2]<-"SResret3"
+names(m_datosSResCH1)[2]<-"SResCH1"
+names(m_datosSResCH2)[2]<-"SResCH2"
+names(m_datosSResCH3)[2]<-"SResCH3"
+names(m_BTCH1)[2]<-"BTCH1"
+names(m_BTCH2)[2]<-"BTCH2"
+names(m_BTCH3)[2]<-"BTCH3"
+names(m_BTret1)[2]<-"BTret1"
+names(m_BTret2)[2]<-"BTret2"
+names(m_BTret3)[2]<-"BTret3"
+names(m_STCH1)[2]<-"STCH1"
+names(m_STCH2)[2]<-"STCH2"
+names(m_STret1)[2]<-"STret1"
+names(m_STret2)[2]<-"STret2"
+names(m_STret3)[2]<-"STret3"
+
+names(m_datosBResCH1)[1]<-"Genes"
+names(m_datosBResCH2)[1]<-"Genes"
+names(m_datosBResCH3)[1]<-"Genes"
+names(m_datosBResret1)[1]<-"Genes"
+names(m_datosBResret2)[1]<-"Genes"
+names(m_datosBResret3)[1]<-"Genes"
+names(m_datosSResret1)[1]<-"Genes"
+names(m_datosSResret2)[1]<-"Genes"
+names(m_datosSResret3)[1]<-"Genes"
+names(m_datosSResCH1)[1]<-"Genes"
+names(m_datosSResCH2)[1]<-"Genes"
+names(m_datosSResCH3)[1]<-"Genes"
+names(m_BTCH1)[1]<-"Genes"
+names(m_BTCH2)[1]<-"Genes"
+names(m_BTCH3)[1]<-"Genes"
+names(m_BTret1)[1]<-"Genes"
+names(m_BTret2)[1]<-"Genes"
+names(m_BTret3)[1]<-"Genes"
+names(m_STCH1)[1]<-"Genes"
+names(m_STCH2)[1]<-"Genes"
+names(m_STret1)[1]<-"Genes"
+names(m_STret2)[1]<-"Genes"
+names(m_STret3)[1]<-"Genes"
+
+datos<-m_datosBResCH1
+datos<-merge(datos,m_datosBResCH2,sort=FALSE,all.x=FALSE,all.y=FALSE)
+datos<-merge(datos,m_datosBResCH3,sort=FALSE,all.x=FALSE,all.y=FALSE)
+datos<-merge(datos,m_datosBResret1,sort=FALSE,all.x=FALSE,all.y=FALSE)
+datos<-merge(datos,m_datosBResret2,sort=FALSE,all.x=FALSE,all.y=FALSE)
+datos<-merge(datos,m_datosBResret3,sort=FALSE,all.x=FALSE,all.y=FALSE)
+datos<-merge(datos,m_datosSResret1,sort=FALSE,all.x=FALSE,all.y=FALSE)
+datos<-merge(datos,m_datosSResret2,sort=FALSE,all.x=FALSE,all.y=FALSE)
+datos<-merge(datos,m_datosSResret3,sort=FALSE,all.x=FALSE,all.y=FALSE)
+datos<-merge(datos,m_datosSResCH1,sort=FALSE,all.x=FALSE,all.y=FALSE)
+datos<-merge(datos,m_datosSResCH2,sort=FALSE,all.x=FALSE,all.y=FALSE)
+datos<-merge(datos,m_datosSResCH3,sort=FALSE,all.x=FALSE,all.y=FALSE)
+datos<-merge(datos,m_BTCH1,sort=FALSE,all.x=FALSE,all.y=FALSE)
+datos<-merge(datos,m_BTCH2,sort=FALSE,all.x=FALSE,all.y=FALSE)
+datos<-merge(datos,m_BTCH3,sort=FALSE,all.x=FALSE,all.y=FALSE)
+datos<-merge(datos,m_BTret1,sort=FALSE,all.x=FALSE,all.y=FALSE)
+datos<-merge(datos,m_BTret2,sort=FALSE,all.x=FALSE,all.y=FALSE)
+datos<-merge(datos,m_BTret3,sort=FALSE,all.x=FALSE,all.y=FALSE)
+datos<-merge(datos,m_STCH1,sort=FALSE,all.x=FALSE,all.y=FALSE)
+datos<-merge(datos,m_STCH2,sort=FALSE,all.x=FALSE,all.y=FALSE)
+datos<-merge(datos,m_STret1,sort=FALSE,all.x=FALSE,all.y=FALSE)
+datos<-merge(datos,m_STret2,sort=FALSE,all.x=FALSE,all.y=FALSE)
+datos<-merge(datos,m_STret3,sort=FALSE,all.x=FALSE,all.y=FALSE)
+
+cts<-datos
+ 
+head(datos)
+               Genes BResCH1 BResCH2 BResCH3 BResret1 BResret2 BResret3
+1 ENSMUSG00000102693       0       0       0        0        0        0
+2 ENSMUSG00000064842       0       0       0        0        0        0
+3 ENSMUSG00000051951      96     152      59      153      131      140
+4 ENSMUSG00000102851       0       0       0        0        0        0
+5 ENSMUSG00000103377       0       6       0        1        0        1
+6 ENSMUSG00000104017       1       3       1        0        3        2
+  SResret1 SResret2 SResret3 SResCH1 SResCH2 SResCH3 BTCH1 BTCH2 BTCH3 BTret1
+1        0        0        0       0       0       0     0     0     0      0
+2        0        0        0       0       0       0     0     0     0      0
+3      206      237      272     174     163     224   293   445   730    872
+4        0        0        0       0       0       0     0     0     0      0
+5        5        9        0       0       1       0     3    62    41      0
+6        2        1        1       0       0       0     0    80   143      0
+  BTret2 BTret3 STCH1 STCH2 STret1 STret2 STret3
+1      0      0     0     0      0      0      0
+2      0      0     0     0      0      0      0
+3    905    722   695  1938    642    612    628
+4      0      0     0     0     49      0     13
+5      0      0     0    80     78     71    131
+6      0      0     0    20     60     28     84
+
+colnames(cts)
+ [1] "Genes"    "BResCH1"  "BResCH2"  "BResCH3"  "BResret1" "BResret2"
+ [7] "BResret3" "SResret1" "SResret2" "SResret3" "SResCH1"  "SResCH2" 
+[13] "SResCH3"  "BTCH1"    "BTCH2"    "BTCH3"    "BTret1"   "BTret2"  
+[19] "BTret3"   "STCH1"    "STCH2"    "STret1"   "STret2"   "STret3"  
+
+rownames(cts) <- cts[,1]
+cts[,1] <- NULL
+
+#################################################################################
+################################################################################
+################################################################################
+################################################################################
+################################################################################
+
+#library(limma)
+# set adjusted pvalue threshold and log fold change threshold
+
+mypval=0.1
+myfc=1
+
+rownames(cts) <- cts[,1]
+cts[,1] <- NULL
+head(cts)
+
+# get the expression counts from previous alignment step
+dim(cts)
+[1] 47069    23
+
+# filtering
+#Keep genes with least 1 count-per-million reads (cpm) in at least 4 samples
+isexpr <- rowSums(cpm(cts)>1) >= 4
+table(isexpr)
+FALSE  TRUE 
+30219 16850 
+
+#####-------------------------------
+
+# select data for the 1000 most highly expressed genes
+select = order(rowMeans(cts), decreasing=TRUE)[1:100]
+highexprgenes_counts <- cts[select,]
+# annotate the data with condition group as labels
+colnames(highexprgenes_counts)<- group
+# transpose the data to have variables (genes) as columns
+data_for_PCA <- t(highexprgenes_counts)
+dim(data_for_PCA)
+[1]  23 100
+
+##The cmdscale function will calculate a matrix of dissimilarities from your transposed data and will also provide information about the proportion of explained variance by calculating Eigen values.
+## calculate MDS (matrix of dissimilarities)
+mds <- cmdscale(dist(data_for_PCA), k=3, eig=TRUE)  
+# k = the maximum dimension of the space which the data are to be represented in
+# eig = indicates whether eigenvalues should be returned
+
+##The variable mds$eig provides the Eigen values for the first 8 principal components:
+mds$eig
+ [1] 3.385511e+12 3.357272e+11 2.145007e+11 1.318156e+11 2.554570e+10
+ [6] 1.867277e+10 1.553336e+10 8.586445e+09 3.741065e+09 3.522889e+09
+[11] 2.801081e+09 2.542452e+09 1.778259e+09 1.226071e+09 6.456434e+08
+[16] 4.957272e+08 2.431394e+08 1.583251e+08 3.721708e+07 1.354798e+07
+[21] 6.625341e+06 2.396389e+06 7.097323e-05
+
+#Plotting this variable as a percentage will help you determine how many components can explain the variability in your dataset and thus how many dimensions you should be looking at.
+# transform the Eigen values into percentage
+eig_pc <- mds$eig * 100 / sum(mds$eig)
+# plot the PCA
+pdf("PCA_PropExplainedVariance.pdf")
+barplot(eig_pc,
+     las=1,
+     xlab="Dimensions", 
+     ylab="Proportion of explained variance (%)", y.axis=NULL,
+     col="darkgrey")
+dev.off()
+
+#In most cases, the first 2 components explain more than half the variability in the dataset and can be used for plotting. The cmdscale function run with default parameters will perform a principal components analysis on the given data matrix and the plot function will provide scatter plots for individuals representation.
+## calculate MDS
+mds <- cmdscale(dist(data_for_PCA)) # Performs MDS analysis 
+
+pdf("PCA_Dim1vsDim2.pdf")
+plot(mds[,1], -mds[,2], type="n", xlab="Dimension 1", ylab="Dimension 2", main="")
+text(mds[,1], -mds[,2], rownames(mds), cex=0.8) 
+dev.off()
+#####-------------------------------
+
+experiment_design.ord <- read.csv("expe.csv")               
+
+head(experiment_design.ord)
+   samples                 exp
+1  BResCH1 Residual_Axon_Brn3b
+2  BResCH2 Residual_Axon_Brn3b
+3  BResCH3 Residual_Axon_Brn3b
+4 BResret1  Residual_Ret_Brn3b
+5 BResret2  Residual_Ret_Brn3b
+6 BResret3  Residual_Ret_Brn3b
+> experiment_design.ord
+    samples                 exp
+1   BResCH1 Residual_Axon_Brn3b
+2   BResCH2 Residual_Axon_Brn3b
+3   BResCH3 Residual_Axon_Brn3b
+4  BResret1  Residual_Ret_Brn3b
+5  BResret2  Residual_Ret_Brn3b
+6  BResret3  Residual_Ret_Brn3b
+7  SResret1   Residual_Ret_Sert
+8  SResret2   Residual_Ret_Sert
+9  SResret3   Residual_Ret_Sert
+10  SResCH1  Residual_Axon_Sert
+11  SResCH2  Residual_Axon_Sert
+12  SResCH3  Residual_Axon_Sert
+13    BTCH1     TRAP_Axon_Brn3b
+14    BTCH2     TRAP_Axon_Brn3b
+15    BTCH3     TRAP_Axon_Brn3b
+16   BTret1      TRAP_Ret_Brn3b
+17   BTret2      TRAP_Ret_Brn3b
+18   BTret3      TRAP_Ret_Brn3b
+19    STCH1      TRAP_Axon_Sert
+20    STCH2      TRAP_Axon_Sert
+21    STCH3      TRAP_Axon_Sert
+22   STret1       TRAP_Ret_Sert
+23   STret2       TRAP_Ret_Sert
+24   STret3       TRAP_Ret_Sert
+
+experiment_design.ord <- read.csv("expe.csv")               
+head(experiment_design.ord)
+
+ [1] Residual_Axon_Brn3b Residual_Axon_Brn3b Residual_Axon_Brn3b
+ [4] Residual_Ret_Brn3b  Residual_Ret_Brn3b  Residual_Ret_Brn3b 
+ [7] Residual_Ret_Sert   Residual_Ret_Sert   Residual_Ret_Sert  
+[10] Residual_Axon_Sert  Residual_Axon_Sert  Residual_Axon_Sert 
+[13] TRAP_Axon_Brn3b     TRAP_Axon_Brn3b     TRAP_Axon_Brn3b    
+[16] TRAP_Ret_Brn3b      TRAP_Ret_Brn3b      TRAP_Ret_Brn3b     
+[19] TRAP_Axon_Sert      TRAP_Axon_Sert      TRAP_Axon_Sert     
+[22] TRAP_Ret_Sert       TRAP_Ret_Sert       TRAP_Ret_Sert      
+8 Levels: Residual_Axon_Brn3b Residual_Axon_Sert ... TRAP_Ret_Sert
+
+experiment_design.ord <- read.csv("expe.csv")    
+group<-factor(experiment_design.ord$exp)
+group
+
+design <- model.matrix(~0+group)
+
+# substitute "group" from the design column names
+colnames(design)<- gsub("group","",colnames(design))
+
+# check your design matrix
+design
+
+# calculate normalization factors between libraries
+nf <- calcNormFactors(cts)
+
+
+# normalise the read counts with 'voom' function
+y <- voom(cts,design,lib.size=colSums(cts)*nf)
+
+# extract the normalised read counts
+counts.voom <- y$E
+
+# save normalised expression data into output dir
+write.csv(counts.voom,"counts.voom.csv")
+
+# fit linear model for each gene given a series of libraries
+fit <- lmFit(y,design)
+# construct the contrast matrix corresponding to specified contrasts of a set of parameters
+
+PRIMER CONTRASTE (EJEMPLO, repetido para los diferentes contrastes)
+cont.matrix <- makeContrasts(groupTRAP_Axon_Brn3b-groupTRAP_Ret_Brn3b,levels=design)
+cont.matrix 
+                          Contrasts
+Levels                     groupTRAP_Axon_Brn3b - groupTRAP_Ret_Brn3b
+  groupResidual_Axon_Brn3b                                          0
+  groupResidual_Axon_Sert                                           0
+  groupResidual_Ret_Brn3b                                           0
+  groupResidual_Ret_Sert                                            0
+  groupTRAP_Axon_Brn3b                                              1
+  groupTRAP_Axon_Sert                                               0
+  groupTRAP_Ret_Brn3b                                              -1
+  groupTRAP_Ret_Sert                                                0
+
+# compute estimated coefficients and standard errors for a given set of contrasts
+fit <- contrasts.fit(fit, cont.matrix)
+
+# compute moderated t-statistics of differential expression by empirical Bayes moderation of the standard errors
+fit <- eBayes(fit)
+options(digits=3)
+
+# check the output fit
+dim(fit)
+[1] 47069     1
+
+
+rownames(cts) <- cts[,1]
+cts[,1] <- NULL
+
+###Significant DE genes for a particular comparison can be identified by selecting genes with a p-value smaller than a chosen cut-off value and/or a fold change greater than a chosen value in this table. By default the table will be sorted by increasing adjusted p-value, showing the most significant DE genes at the top.
+
+# set adjusted pvalue threshold and log fold change threshold
+mypval=0.1
+myfc=1
+
+# get the coefficient name for the comparison  of interest
+colnames(fit$coefficients)
+
+mycoef="TRAP_Axon_Brn3b - TRAP_Ret_Brn3b"
+
+# get the output table for the 10 most significant DE genes for this comparison
+topTable(fit,coef=mycoef)
+                    logFC AveExpr     t  P.Value adj.P.Val    B
+ENSMUSG00000046668  -1.81  7.2048 -31.4 1.21e-16  1.14e-12 28.3
+ENSMUSG00000104901   9.98  1.4131  34.2 2.83e-17  7.80e-13 27.0
+ENSMUSG00000010529 -10.11  0.5354 -33.2 4.49e-17  7.80e-13 26.6
+ENSMUSG00000029755   9.96  0.1674  31.6 1.05e-16  1.14e-12 26.1
+ENSMUSG00000035725  -2.40  5.6217 -27.2 1.36e-15  7.73e-12 26.0
+ENSMUSG00000100341   8.50 -1.3881  33.0 4.97e-17  7.80e-13 25.7
+ENSMUSG00000079466   9.85 -0.0992  30.2 2.33e-16  1.83e-12 25.5
+ENSMUSG00000021846  -3.58  5.5408 -24.5 7.99e-15  2.21e-11 24.3
+ENSMUSG00000027434   9.86 -0.5690  27.0 1.48e-15  7.73e-12 24.3
+ENSMUSG00000024366  -8.79 -1.4525 -27.2 1.32e-15  7.73e-12 24.0
+
+# get the full table ("n = number of genes in the fit")
+limma.res <- topTable(fit,coef=mycoef,n=dim(fit)[1])
+
+# get significant DE genes only (adjusted p-value < mypval)
+limma.res.pval <- topTable(fit,coef=mycoef,n=dim(fit)[1],p.val=mypval)
+
+dim(limma.res.pval)
+[1] 8314    6
+
+# get significant DE genes with low adjusted p-value high fold change
+limma.res.pval.FC <- limma.res.pval[which(abs(limma.res.pval$logFC)>myfc),]
+
+dim(limma.res.pval.FC)
+[1] 5156    6
+
+# write limma output table for significant genes into a tab delimited file
+
+write.table(limma.res.pval.FC,"Brn3b_AxonvsRet.txt",quote=F,sep="\t")
+write.csv(limma.res.pval.FC,"Brn3b_AxonvsRet.csv")
+
+# get the Ensembl annotation for mouse genome
+library(biomaRt)
+biomartCacheClear()
+ensembl <- useMart("ensembl", dataset="mmusculus_gene_ensembl")
+annot<-getBM(c("ensembl_gene_id", "mgi_symbol", "chromosome_name", "strand", "start_position", "end_position","gene_biotype"), mart=ensembl)
+
+# interrogate the BioMart database to get gene symbol and description for these genes 
+head(annot)
+     ensembl_gene_id mgi_symbol chromosome_name strand start_position
+1 ENSMUSG00000064336      mt-Tf              MT      1              1
+2 ENSMUSG00000064337    mt-Rnr1              MT      1             70
+3 ENSMUSG00000064338      mt-Tv              MT      1           1025
+4 ENSMUSG00000064339    mt-Rnr2              MT      1           1094
+5 ENSMUSG00000064340     mt-Tl1              MT      1           2676
+6 ENSMUSG00000064341     mt-Nd1              MT      1           2751
+  end_position   gene_biotype
+1           68        Mt_tRNA
+2         1024        Mt_rRNA
+3         1093        Mt_tRNA
+4         2675        Mt_rRNA
+5         2750        Mt_tRNA
+6         3707 protein_coding
+
+# remove duplicates
+annot.matrix<-annot[-which(duplicated(annot$ensembl_gene_id)),]
+# select genes of interest only
+rownames(annot.matrix)<-annot.matrix$ensembl_gene_id
+
+# join the two tables
+limma.res.pval.FC.annot <- merge(limma.res,annot.matrix, by='row.names', sort=F, all.x=T)
+
+# check the annotated table
+head(limma.res.pval.FC.annot)
+dim(limma.res.pval.FC.annot)
+
+write.csv(limma.res.pval.FC.annot, "TRAP_Axon_Brn3bvsSert.csv")
+
+######################################################################
+######################################################################
+######################################################################
+######################################################################
+######################################################################
+
+Merge values of candidates by rpkm values ratios with statistical differential 
+expression to obtain the final candidates table.
+
+######################################################################
+######################################################################
+######################################################################
+######################################################################
+######################################################################
+
+## Esta parte aun no esta implementada (aun no entiendo bien en software) 
+Generally applicable transcriptome-wide analysis of translation using anota2seq
+Christian Oertlin, Julie Lorent, Carl Murie, Luc Furic, Ivan Topisirovic, Ola Larsson
+Nucleic Acids Research, Volume 47, Issue 12, 09 July 2019, Page e70, https://doi.org/10.1093/nar/gkz223
+
+library(anota2seq)
+
+## Brn3b
+## total mRNA Brn3b (Residual Brn3b retina + brn3b trap retina )
+anota2seq_data_T <- cts[,c(5,6,7,17,18,19)]
+
+## translated mRNA Brn3b (Brn3b Residual CH, BTrapCH)
+anota2seq_data_P <-cts[,c(2,3,4,14,15,16)]
+
+
+## sert
+## total mRNA sert (Residual sert retina + sert trap retina )
+anota2seq_data_T <- cts[,c(8,9,10,22,23)]
+
+## translated mRNA sert (sert Residual CH, sTrapCH)
+anota2seq_data_P <-cts[,c(11,12,13,20,21)]
+
+anota2seq_pheno_vec <- c("residual","residual","residual","trap","trap", "trap")
+
+library(anota2seq)
+ads <- anota2seqDataSetFromMatrix(dataP = anota2seq_data_P,dataT = anota2seq_data_T,phenoVec = anota2seq_pheno_vec,dataType = "RNAseq",normalize = TRUE)
+
+Removing zero count genes from data ...
+
+35035  genes were removed due to having 0 counts in at least one sample.
+
+Count data will be normalized and transformed according to the TMM-log2 method.
+
+All input checkpoints passed.
+
+
+ads <- anota2seqRun(ads)
+plot1 <- anota2seqPlotFC(ads, selContrast = 1, plotToFile = FALSE)
+pdf("anota2seq_brn3b.pdf")
+anota2seqPlotFC(ads, selContrast = 1, plotToFile = FALSE)
+dev.off()
+
+anota_output <- anota2seqGetOutput(ads, analysis = "translation", output = "selected", getRVM = TRUE,selContrast = 1)[, c("apvEff", "apvRvmPAdj", "singleRegMode")])
+
+################################################################################
+################################################################################
+################################################################################
+################################################################################
+################################################################################
+
+## Old analysis with DESeq2
+library(DESeq2)
+
+#When you look at the bottom of the dataset, you’ll notice that there are some rows we don’t want to include in our analysis. We can #remove them easily by taking a subset of the data that includes everything except the last 5 rows:
+
+#all.data <- cts[1:(nrow(cts)-5),]
+rownames(cts) <- cts[,1]
+ #cts <- cts[,-1]
+ head(cts)
+all.data <- cts
+tail(all.data)
+all.data[,1] <- NULL
+
+
+samplefiles <-grep("*.txt", list.files(directory), value=TRUE)
+samplefiles
+
+samples <- as.factor(c("Brn3b_TRAP_Axon_19","Brn3b_TRAP_Axon_20","Brn3b_TRAP_Axon_21","Brn3b_TRAP_Retina_11","Brn3b_TRAP_Retina_12",
+"Brn3b_TRAP_Retina_13","Control_Axon_26","Control_Axon_27","Control_Axon_28","Control_Retina_23","Control_Retina_24","Control_Retina_25"))
+
+#sampleGenotype <- as.factor(c(rep("Axon",3),rep("Retina",3), rep("Axon",3), rep("Retina",3)))
+sampleCellular <- as.factor(c(rep("Axon",3),rep("Retina",3), rep("Axon",3), rep("Retina",3)))
+background <- as.factor(c(rep("Brn3b_TRAP",6),rep("Control",6)))
+
+
+#genotype = sampleGenotype
+#activity = sampleActivity
+sampletable <- data.frame (samplename =samplefiles, filename=samplefiles, background = background, Cell=sampleCellular) 
+
+ddsHTSeq<-DESeqDataSetFromHTSeqCount(sampleTable=sampletable, directory= directory, design=~ background + Cell)
+
+############################
+## relevel
+
+ddsHTSeq$Cell <- relevel(ddsHTSeq$Cell, ref="Axon")
+ddsHTSeq$background <- relevel(ddsHTSeq$background, ref="Control")
+dds <-DESeq(ddsHTSeq)
+res<-results(dds)
+
+
+GeneCounts <- counts(dds)
+dim(GeneCounts) #todos los genes!
+idx.nz <- apply(GeneCounts, 1, function(x) { all(x > 0)})
+sum(idx.nz)
+head(idx.nz) #todos los genes con reads en todas las muestras!
+
+GeneCounts.norm <- round(counts(dds,normalized=TRUE),2) 
+head(GeneCounts.norm)
+
+dds <- estimateSizeFactors(dds)
+dds <- estimateDispersions(dds)
+
+# How to get normalized counts from DESeq? http://seqanswers.com/forums/showthread.php?t=6026  
+
+normal_counts <- GeneCounts.norm
+###normal_counts <- t(t(counts(dds))/sizeFactors)
+colnames(normal_counts)[1] <- "19_norm"
+colnames(normal_counts)[2] <- "20_norm"
+colnames(normal_counts)[3] <- "21_norm"
+colnames(normal_counts)[4] <- "11_norm"
+colnames(normal_counts)[5] <- "12_norm"
+colnames(normal_counts)[6] <- "13_norm"
+colnames(normal_counts)[7] <- "26_norm"
+colnames(normal_counts)[8] <- "27_norm"
+colnames(normal_counts)[9] <- "28_norm"
+colnames(normal_counts)[10] <- "23_norm"
+colnames(normal_counts)[11] <- "24_norm"
+colnames(normal_counts)[12] <- "25_norm"
+head(normal_counts)
+normal_counts <- data.frame(normal_counts)
+
+resdata1 <- merge(as.data.frame(GeneCounts), as.data.frame(normal_counts), by='row.names',sort=F,all.x=T)
+names(resdata1)[1] <- 'genes'
+head(resdata1)
+
+cds = estimateDispersions(ddsHTSeq)
+vsdFull = varianceStabilizingTransformation( cds )
+
+#In this case, we see not only that the samples cluster by genotype and genetic background but also that PC1 represents genetic #background, and PC2 seems to represent wt vs. mutant genotype.
+
+DESeq2Table <- estimateSizeFactors(dds)
+DESeq2Table <- estimateSizeFactors(dds)
+dds1.norm <- estimateDispersions(DESeq2Table)
+vsd <- varianceStabilizingTransformation(DESeq2Table, blind=TRUE)
+vsdFull <- vsd
+
+# Perform the test for diferential expression, using nbinomTest
+DESeq2Table2 <- nbinomWaldTest(dds1.norm)
+DESeq2Res <- results(DESeq2Table2, pAdjustMethod = "BH")
+
+pdf("PCA.pdf")
+print(plotPCA(vsdFull, intgroup=c("background", "Cell")))
+dev.off()
+
+
+# Plot to show effect of transformation	
+# - axis is square root of variance over the mean for all samples, so this will naturally included variance due to the 
+# treatment. 
+# The goal here is to flattern the curve so that there is consistent variance across the read counts, and that is what we 
+# got.
+pdf("DATE-DESeq2_variance_stabilizing.pdf")
+par( mfrow = c( 1, 1 ) )
+par(mai = ifelse(1:4 <= 2, par('mai'),0))
+px <- counts(dds)[,1] / sizeFactors(dds)[1]
+ord <- order(px)
+ord <- ord[px[ord] < 150]
+ord <- ord[seq(1,length(ord),length=50)]
+last <- ord[length(ord)]
+vstcol <- c('blue','black')
+matplot(px[ord], cbind(assay(vsd)[,1], log2(px))[ord, ],type='l', lty = 1, col=vstcol, xlab = 'n', ylab = 'f(n)')
+legend('bottomright',legend=c(expression('variance stabilizing transformation'), expression(log[2](n/s[1]))), fill=vstcol)
+
+dev.off()
+
+rld <- rlogTransformation(dds, blind=T)
+
+con <- as.character(colData(DESeq2Table)$Cell)
+con
+
+colData(DESeq2Table)$Cell <- factor(con)
+colData(DESeq2Table)$Cell
+
+# Save normalized values
+write.table(as.data.frame(assay(rld),file='DATE-DESeq2-rlog-transformed-counts.txt', sep='\t'))
+
+
+assay(rld)
+
+rld_dataframe <-data.frame(rownames(assay(rld)),assay(rld))
+colnames(rld_dataframe)[1]="genes"
+head(rld_dataframe)
+head(rld_dataframe)[1]
+
+colnames(rld_dataframe)[2] <- "rld_19_norm"
+colnames(rld_dataframe)[3] <- "rld_20_norm"
+colnames(rld_dataframe)[4] <- "rld_21_norm"
+colnames(rld_dataframe)[5] <- "rld_11_norm"
+colnames(rld_dataframe)[6] <- "rld_12_norm"
+colnames(rld_dataframe)[7] <- "rld_13_norm"
+colnames(rld_dataframe)[8] <- "rld_26_norm"
+colnames(rld_dataframe)[9] <- "rld_27_norm"
+colnames(rld_dataframe)[10] <- "rld_28_norm"
+colnames(rld_dataframe)[11] <- "rld_23_norm"
+colnames(rld_dataframe)[12] <- "rld_24_norm"
+colnames(rld_dataframe)[13] <- "rld_25_norm"
+
+
+write.csv(as.data.frame(resdata1),file="counts.csv")
+resdata1 <- merge(as.data.frame(GeneCounts), as.data.frame(normal_counts), by='row.names',sort=F,all.x=T)
+names(resdata1)[1] <- 'genes'
+head(resdata1)
+
+df<-data.frame(rownames(DESeq2Res),DESeq2Res)
+colnames(df)[1]="genes"
+resdata2 <- as.data.frame(df)
+write.csv(as.data.frame(resdata2),file="results.csv")
+head(df)
+
+genestotales <- merge(df,resdata1, by='genes',sort=F,all.x=T)
+write.csv(as.data.frame(genestotales),file="lista_final_results.csv")
+write.csv(as.data.frame(rld_dataframe),file="rlog_rld_results.csv")
+genestotales1 <- merge(genestotales,rld_dataframe, by='genes',sort=F,all.x=T)
+write.csv(as.data.frame(genestotales1),file="lista_final_retinavsAxon.csv")
+
+
+pdf("Pearson2.pdf")
+distsRL <- dist(t(assay(rld)))
+mat <- as.matrix(distsRL)
+
+colnames(mat) <-  samplefiles
+colnames(mat)
+
+# We visualize the distances in a heatmap (Clustering analysis) in a Figure below, using the function pheatmap from the 
+# pheatmap package.
+
+#biocLite("pheatmap")
+library("pheatmap")
+library(RColorBrewer)
+
+colors <- colorRampPalette( rev(brewer.pal(9, "Blues")) )(255)
+pheatmap(mat,
+         clustering_distance_rows=distsRL,
+         clustering_distance_cols=distsRL,
+         col=colors)
+
+dev.off()
+
+
+library(gdata)
+tabla <- read.xls("lista_Brn3bTRAPcontralaterales_RetinavsAxon.xls",sheet = "lista_final_RetinavsAxon")
+tabla_sig <- read.xls("lista_Brn3bTRAPcontralaterales_RetinavsAxon.xls",sheet = "absLFC2&padj01")
+annotation <- read.csv("annotation_MusMusculus_mm10.csv")
+lista_total <- merge(tabla,annotation, by='genes',sort=F,all.x=T)
+lista_sig <- merge(tabla_sig, annotation, by='genes',sort=F,all.x=T)
+
+lista_total1 <- lista_total[!duplicated(lista_total$genes),] 
+lista_sig1 <- lista_sig[!duplicated(lista_sig$genes),]
+
+write.csv(lista_total1, "genesRetinavsAxon_annotated.csv")
+write.csv(lista_sig1, "sig_genesRetinavsAxon_annotated.csv")
+
+################################################################################
+################################################################################
+################################################################################
+################################################################################
+################################################################################
+
+FIGURES .... IN PROGRESS (tengo que añadir a la tabla todos los genes, para que salga el volcano)
+
+#The  “volcano  plot”  is  an  effective  and  easy-to-interpret  graph  that  summarizes  both  fold-change  and  a  measure  of statistical significance from a statistical test (usually a p-value).  It is a scatter-plot of the negative log10-transformed
+p-values from the gene-specific test (on the y-axis) against the log2fold change (on the x-axis).
+This results in datapoints with low p-values (highly significant) appearing towards 
+the top of the plot.  The log2 of the fold-change is used so that changes in both directions (up and down) appear equidistant from the center.  Plotting points  in  this  way  results  in  two  regions  of  interest  in  the  plot:  those  points  that  are  found  towards  the  top  of  #the plot that are far  to either the left- or the right-hand side.  These represent values  that  display large magnitude fold changes (hence being left- or right- of center) as well as high statistical significance (hence being towards the top).
+
+# For illustration we will use the result in the "resDeseq2" object from Deseq analysis.  We construct a table containing the log2fold change and the negative log10-transformed p-values:
+
+tab = data.frame(logFC = res[, 2], negLogPval = -log10(res[, 5]))
+head(tab)
+#logFC negLogPval
+#1  1.322     0.6966
+#2  1.074     0.8097
+#3 -3.214     1.9119
+#4 -1.092     2.2188
+#Statistical analysis of RNA-Seq data
+#
+#The volcano plot can then be generated using the standard plot command:
+
+pdf("volcano_Log2FCandp-valuecut1.pdf")
+par(mar = c(5, 4, 4, 4))
+plot(tab, pch = 16, cex = 0.6, xlab = expression(log[2]~fold~change),ylab = expression(-log[10]~pvalue))
+
+#We can identify genes (points) in the two regions of interest on the plot:  points 
+with large magnitude fold changes (being left- or right- of center) and points with high statistical significance (being towards the top).
+
+## Log2 fold change and p-value cutoffs
+lfc = 1
+pval = 0.01
+
+## Selecting interest genes
+signGenes = (abs(tab$logFC) > lfc & tab$negLogPval > -log10(pval))
+## Identifying the selected genes
+
+points(tab[signGenes, ], pch = 16, cex = 0.8, col = "red")
+abline(h = -log10(pval), col = "green3", lty = 2)
+abline(v = c(-lfc, lfc), col = "blue", lty = 2)
+mtext(paste("pval =", pval), side = 4, at = -log10(pval), cex = 0.8, line = 0.5, las = 1)
+mtext(c(paste("-", lfc, "fold"), paste("+", lfc, "fold")), side = 3, at = c(-lfc, lfc),cex = 0.8, line = 0)
+dev.off()
+
+#The red points indicate genes-of-interest that display both large-magnitude fold-changes (x-axis) as well as high statistical #significance (−log10of p-value,y-axis).  The dashedgreen-line shows the p-value cutoff (pval = 0.01) with points above the line having p-value<0.01 and points below the line having p-value>0.01.  The vertical dashed blue lines shows 2-fold changes.
+
+pdf("volcano_Log2FCandp-valuecutoffs2.pdf")
+par(mar = c(5, 4, 4, 4))
+plot(tab, pch = 16, cex = 0.6, xlab = expression(log[2]~fold~change),ylab = expression(-log[10]~pvalue))
+
+#We can identify genes (points) in the two regions of interest on the plot:  points with large magnitude fold changes
+#(being left- or right- of center) and points with high statistical significance (being towards the top).
+## Log2 fold change and p-value cutoffs
+
+lfc = 2
+pval = 0.01
+
+## Selecting interest genes
+signGenes = (abs(tab$logFC) > lfc & tab$negLogPval > -log10(pval))
+## Identifying the selected genes
+points(tab[signGenes, ], pch = 16, cex = 0.8, col = "red")
+abline(h = -log10(pval), col = "green3", lty = 2)
+abline(v = c(-lfc, lfc), col = "blue", lty = 2)
+mtext(paste("pval =", pval), side = 4, at = -log10(pval), cex = 0.8, line = 0.5, las = 1)
+mtext(c(paste("-", lfc, "fold"), paste("+", lfc, "fold")), side = 3, at = c(-lfc, lfc),cex = 0.8, line = 0)
+dev.off()
+
+> volc <- read.csv("volcanoAxonTRAP.csv")
+> head(volc)
+    genes         Padj      LFC
+1   Ighg1 2.276803e-08 8.428402
+2 Gm11549 3.321899e-08 9.574279
+3   Auts2 2.613352e-07 9.162368
+4  Gm9974 3.128286e-07 7.247580
+5 Gm43389 5.798895e-07 8.293728
+6 Gm42842 6.014460e-07 7.920739
+
+cols <- c("red" = "red", "orange" = "orange", "nonsignificant" = "darkgrey", "Increased" = "#00B2FF", "Decreased" = "#00B2FF")
+
+# Finally, we can organize the labels nicely using the "ggrepel" package and the geom_text_repel() function
+# load library
+library(ggplot2)
+library(ggrepel)
+# plot adding up all layers we have seen so far
+# Make a basic ggplot2 object
+>vol <- ggplot(volc, aes(x = LFC, y = Padj, color = cols, labels=genes))
+
+vol = ggplot(volc, aes(LFC, -log10(Padj))) + #volcanoplot with log2Foldchange versus pvalue
+    geom_point(aes(col=sig)) + #add points colored by significance
+    scale_color_manual(values=c("black", "red")) + 
+    ggtitle("Your title here") #e.g. 'Volcanoplot DESeq2'
+volc+geom_text_repel(data=head(input, 20), aes(label=gene)) #adding text for the top 20 genes
+#ggsave("Volcanoplot.jpeg", device="jpeg") #In case you want to easily save to disk
+volc
+
+################################################################################################################
+
+
