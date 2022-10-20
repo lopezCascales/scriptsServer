@@ -1,0 +1,350 @@
+
+
+DOWNLOAD the dataset from GEO database or DRA-seq databases
+wget 'linklocation'/SRR*
+fast-dump SRR*
+gunzip *.fastq.gz
+
+#########################################################################
+Datasets resumen
+
+Eloisa Herrera lab
+
+Input_E6_A ChIP DNA 65266394 Single end 50  
+Input_E6_B ChIP DNA 77255825 Single end 50  
+Zic2_E6_A ChIP DNA 66594058 Single end 50   
+Zic2_E6_B ChIP DNA 81770692 Single end 50  
+
+Input_E8_A ChIP DNA 85329966 Single end 50 
+Input_E8_B ChIP DNA 88252911 Single end 50     
+Zic2_E8_A ChIP DNA 82017718 Single end 50  
+Zic2_E8_B ChIP DNA 86772494 Single end 50
+
+
+Mayers et al. Embo 2019
+
+GSM3759772 	input_WT-ESC_I
+GSM3759773 	input_WT-ESC_II
+GSM3759774 	input_WT-32h_I
+GSM3759775 	input_WT-32h_II
+
+GSM3759788 	Zic2-ChIP_WT-ESC_I
+GSM3759789 	Zic2-ChIP_WT-ESC_II
+GSM3759790 	Zic2-ChIP_WT-32h_I
+GSM3759791 	Zic2-ChIP_WT-32h_II
+
+GSM3759776 	H3K9me2-ChIP_WT-ESC_I
+GSM3759777 	H3K9me2-ChIP_WT-ESC_II
+GSM3759778 	H3K9me2-ChIP_WT-32h_I
+GSM3759779 	H3K9me2-ChIP_WT-32h_II
+
+GSM3759780 	H3K27ac-ChIP_WT-ESC_I
+GSM3759781 	H3K27ac-ChIP_WT-ESC_II
+GSM3759782 	H3K27ac-ChIP_WT-32h_I
+GSM3759783 	H3K27ac-ChIP_WT-32h_II
+
+Matsuda K, Mikami T, Oki S, Iida H et al. ChIP-seq analysis of genomic binding regions of five major transcription factors highlights a central role for ZIC2 in the mouse epiblast stem cell gene regulatory network. Development 2017
+
+GSM1924743 	EpiSC_control
+GSM1924744 	EpiSC_ZIC2_ChIPseq
+GSM1924749 	EpiSCA_ZIC2_ChIPseq
+
+Luo Z, Gao X, Lin C, Smith ER et al. Zic2 is an enhancer-binding factor required for embryonic stem cell specification. Mol Cell 2015
+
+GSM1499115 	Input_NonT_rep1
+GSM1499142 	Input_NonT_rep2
+GSM1499134 	Input_NonT_rep3
+
+GSM1499125 	Input_shZic2_rep1
+GSM1499143 	Input_shZic2_rep2
+GSM1499135 	Input_shZic2_rep3
+
+GSM1499116 	Zic2_rep1
+GSM1499117 	Zic2_rep2
+
+GSM1499136 	H3K4me3_NonT
+GSM1499137 	H3K4me3_shZic2
+
+GSM1499126 	H3K27ac_NonT_rep1
+GSM1499127 	H3K27ac_NonT_rep2
+GSM1499128 	H3K27ac_shZic2_rep1
+GSM1499129 	H3K27ac_shZic2_rep2
+
+GSM1499130 	H3K4me1_NonT_rep1
+GSM1499131 	H3K4me1_NonT_rep2
+GSM1499132 	H3K4me1_shZic2_rep1
+GSM1499133 	H3K4me1_shZic2_rep2
+
+GSM1499121 	H3K27me3_NonT_rep1
+GSM1499122 	H3K27me3_NonT_rep2
+GSM1499123 	H3K27me3_shZic2_rep1
+GSM1499124 	H3K27me3_shZic2_rep2
+
+GSM1499138 	PolII_NonT_rep1
+GSM1499139 	PolII_NonT_rep2
+GSM1499140 	PolII_shZic2_rep1
+GSM1499141 	PolII_shZic2_rep2
+
+Domcke S, Bardet AF, Adrian Ginno P, Hartl D et al. Competition between DNA methylation and transcription factors determines binding of NRF1. Nature 2015
+
+GSM1891641 	NRF1_CHIP_WT_1
+GSM1891642 	NRF1_CHIP_WT_2
+GSM1891643 	NRF1_INPUT_WT
+
+GSM1891647 	NRF1_CHIP_NP_1
+GSM1891648 	NRF1_INPUT_NP_1
+GSM1891649 	NRF1_CHIP_NP_2
+GSM1891650 	NRF1_INPUT_NP_2
+
+Xiang Y, Zhang Y, Xu Q, Zhou C et al. Epigenomic analysis of gastrulation identifies a unique chromatin state for primed pluripotency. Nat Genet 2020
+
+GSM3568862 	ChIP_E5.5Epi_H3K4me3_rep1
+GSM3568863 	ChIP_E5.5Epi_H3K4me3_rep2
+GSM3568864 	ChIP_E6.5Epi_H3K4me3_rep1
+GSM3568865 	ChIP_E6.5Epi_H3K4me3_rep2
+GSM3568876 	ChIP_E5.5Epi_H3K27me3_rep1
+GSM3568877 	ChIP_E5.5Epi_H3K27me3_rep2
+GSM3568878 	ChIP_E6.5Epi_H3K27me3_rep1
+GSM3568879 	ChIP_E6.5Epi_H3K27me3_rep2
+GSM3568890 	ChIP_E6.5Epi_H3K27ac_rep1
+GSM3568891 	ChIP_E6.5Epi_H3K27ac_rep2
+GSM4015585 	ChIP_E6.5Epi_H3
+
+Epiblast
+GSM3568849 	ATAC_E6.5Epi_rep1
+GSM3568850 	ATAC_E6.5Epi_rep2
+GSM3568851 	ATAC_E6.5Epi_rep3
+
+ENCODE Project Consortium. An integrated encyclopedia of DNA elements in the human genome. Nature 2012
+PRJNA63471 Mouse ENCODE epigenomic data https://www.encodeproject.org/
+ChIP-seq on embryonic 11.5 day mouse neural tube. Histone modifications H3K4me3, H3K27ac, H3K4me1
+
+GEO:GSE82686 H3K4me3
+GSM2191717 	ChIP-seq from neural tube (ENCLB624GYB) 
+GSM2191718 	ChIP-seq from neural tube (ENCLB045KBJ)
+ 
+H3K27ac Non submitted Zhiping Weng, UMass
+cREs-mm10-v10-C57BL-6-neural-tube-embryo-11-5-days-5group
+ENCSR828DSD
+
+GEO:GSE82702 H3K4me1 
+ENCSR448TTC
+GSM2191751 	ChIP-seq from neural tube (ENCLB253LBH)
+GSM2191752 	ChIP-seq from neural tube (ENCLB961GLW)
+##################################################################################################################################################
+Table 2|Summary of ENCODE histone modifications and variants
+
+Histone modification or variant 	Signal characteristics 		Putative functions
+H2A.Z 						Peak 			Histone protein variant (H2A.Z) associated with regulatory elements with dynamic chromatin
+H3K4me1						Peak/region  		Mark of regulatory elements associated with enhancers and other distal elements, but also enriched 										downstream of transcription starts
+H3K4me2						Peak			Mark of regulatory elements associated with promoters and enhancers
+H3K4me3						Peak			Mark of regulatory elements primarily associated with promoters/transcription starts
+H3K9ac						Peak			Mark of active regulatory elements with preference for promoters
+H3K9me1						Region			Preference for the 5' end of genes
+H3K9me3						Peak/region		Repressive mark associated with constitutive heterochromatin and repetitive elements
+H3K27ac						Peak			Mark of active regulatory elements; may distinguish active enhancers and promoters from their inactive 										counter parts
+H3K27me3 					Region   		Repressive mark established by polycomb complex activity associated with repressive domains and silent 										developmental genes
+H3K36me3 					Region			Elongation mark associated with transcribed portions of genes, with preference for 3' regions after 										intron 1
+H3K79me2 					Region			Transcription-associated mark, with preference for 5 end of genes
+H4K20me1 					Region			Preference for 5' end of genes
+##################################################################################################################################################
+
+MATSUDA et al. 2017
+
+bowtie2 -x Mus_musculus_index_bowtie2 -U matsuda2017_epiSC_control.fastq|samtools view -bS - > input_Zic2_epiSC_rep2_Matsuda_GSE74636.bam
+[samopen] SAM header is present: 66 sequences.
+31808283 reads; of these:
+  31808283 (100.00%) were unpaired; of these:
+    783623 (2.46%) aligned 0 times
+    22476158 (70.66%) aligned exactly 1 time
+    8548502 (26.88%) aligned >1 times
+97.54% overall alignment rate
+
+bowtie2 -x Mus_musculus_index_bowtie2 -U Matsuda2017_EpiSCZic2.fastq|samtools view -bS - > Matsuda2017_EpiSCZic2.bam
+[samopen] SAM header is present: 66 sequences.
+22082410 reads; of these:
+  22082410 (100.00%) were unpaired; of these:
+    3160341 (14.31%) aligned 0 times
+    16094565 (72.88%) aligned exactly 1 time
+    2827504 (12.80%) aligned >1 times
+85.69% overall alignment rate
+
+bowtie2 -x Mus_musculus_index_bowtie2 -U Matsuda2017_EpiSCZic2Activin.fastq|samtools view -bS - > Matsuda2017_EpiSCZic2Activin.bam
+[samopen] SAM header is present: 66 sequences.
+19080617 reads; of these:
+  19080617 (100.00%) were unpaired; of these:
+    2387150 (12.51%) aligned 0 times
+    14112472 (73.96%) aligned exactly 1 time
+    2580995 (13.53%) aligned >1 times
+87.49% overall alignment rate
+
+Mayers et al files 
+
+bowtie2 -x Mus_musculus_index_bowtie2 -U 1254F1-1_170620_D00404_0321_ACB79CANXX_ATCACG-NoIndex_L002_R1_001.fastq|samtools view -bS - > Zic2_ESCd0inputREP2.bam
+[samopen] SAM header is present: 66 sequences.
+91266457 reads; of these:
+  91266457 (100.00%) were unpaired; of these:
+    3326870 (3.65%) aligned 0 times
+    61582832 (67.48%) aligned exactly 1 time
+    26356755 (28.88%) aligned >1 times
+96.35% overall alignment rate
+
+ 
+Luo et al. files
+
+bowtie2 -x Mus_musculus_index_bowtie2 -U SRR1569110.1.fastq|samtools view -bS - > H3K4me3_ESC_ShZic2.bam
+[samopen] SAM header is present: 66 sequences.
+26423391 reads; of these:
+  26423391 (100.00%) were unpaired; of these:
+    745426 (2.82%) aligned 0 times
+    19449566 (73.61%) aligned exactly 1 time
+    6228399 (23.57%) aligned >1 times
+97.18% overall alignment rate
+
+bowtie2 -x Mus_musculus_index_bowtie2 -U SRR1569109.1.fastq|samtools view -bS - > H3K4me3_ESC_ctl.bam
+[samopen] SAM header is present: 66 sequences.
+26468023 reads; of these:
+  26468023 (100.00%) were unpaired; of these:
+    647170 (2.45%) aligned 0 times
+    19453773 (73.50%) aligned exactly 1 time
+    6367080 (24.06%) aligned >1 times
+97.55% overall alignment rate
+
+
+############################################################################
+
+samtools merge $file_merge.bam $fileREP2.bam $fileREP1.bam
+samtools sort $file.bam $file_sort
+convert sorted bam to bigwig or tdf
+
+###########################################################################
+
+Peak calling 
+
+macs2 callpeak -t Zic2ESCsortd0.bam -c inputZic2ESCd0.bam --format BAM -g mm -n ESC0h --qvalue 0.1 --keep-dup all
+
+INFO  @ Thu, 07 May 2020 11:37:44: 
+# Command line: callpeak -t Zic2ESCsortd0.bam -c inputZic2ESCd0.bam --format BAM -g mm -n ESC0h --qvalue 0.1 --keep-dup all
+# ARGUMENTS LIST:
+# name = ESC0h
+# format = BAM
+# ChIP-seq file = ['Zic2ESCsortd0.bam']
+# control file = ['inputZic2ESCd0.bam']
+# effective genome size = 1.87e+09
+# band width = 300
+# model fold = [5, 50]
+# qvalue cutoff = 1.00e-01
+# Larger dataset will be scaled towards smaller dataset.
+# Range for calculating regional lambda is: 1000 bps and 10000 bps
+# Broad region calling is off
+ 
+INFO  @ Thu, 07 May 2020 11:37:44: #1 read tag files... 
+INFO  @ Thu, 07 May 2020 11:37:44: #1 read treatment tags... 
+INFO  @ Thu, 07 May 2020 11:37:47:  1000000 
+INFO  @ Thu, 07 May 2020 11:37:50:  2000000 
+INFO  @ Thu, 07 May 2020 11:37:53:  3000000 
+INFO  @ Thu, 07 May 2020 11:37:56:  4000000 
+INFO  @ Thu, 07 May 2020 11:38:00:  5000000 
+INFO  @ Thu, 07 May 2020 11:38:03:  6000000 
+INFO  @ Thu, 07 May 2020 11:38:06:  7000000 
+INFO  @ Thu, 07 May 2020 11:38:09:  8000000 
+INFO  @ Thu, 07 May 2020 11:38:12:  9000000 
+...
+.
+.
+... 
+INFO  @ Thu, 07 May 2020 11:51:46: #2 number of paired peaks: 4124 
+INFO  @ Thu, 07 May 2020 11:51:46: start model_add_line... 
+INFO  @ Thu, 07 May 2020 11:51:47: start X-correlation... 
+INFO  @ Thu, 07 May 2020 11:51:47: end of X-cor 
+INFO  @ Thu, 07 May 2020 11:51:47: #2 finished! 
+INFO  @ Thu, 07 May 2020 11:51:47: #2 predicted fragment length is 159 bps 
+INFO  @ Thu, 07 May 2020 11:51:47: #2 alternative fragment length(s) may be 159 bps 
+INFO  @ Thu, 07 May 2020 11:51:47: #2.2 Generate R script for model : ESC0h_model.r 
+INFO  @ Thu, 07 May 2020 11:51:47: #3 Call peaks... 
+INFO  @ Thu, 07 May 2020 11:51:47: #3 Pre-compute pvalue-qvalue table... 
+INFO  @ Thu, 07 May 2020 12:00:49: #3 Call peaks for each chromosome... 
+INFO  @ Thu, 07 May 2020 12:04:14: #4 Write output xls file... ESC0h_peaks.xls 
+INFO  @ Thu, 07 May 2020 12:04:15: #4 Write peak in narrowPeak format file... ESC0h_peaks.narrowPeak 
+INFO  @ Thu, 07 May 2020 12:04:15: #4 Write summits bed file... ESC0h_summits.bed 
+INFO  @ Thu, 07 May 2020 12:04:15: Done! 
+
+##########################################################################################
+Alignment Chipseq XIang et al. 2020
+
+bowtie2 -x /data/index/bowtie2/mm10/mm10 -U SRR8454442_1.fastq|samtools view -bS - > H3K4me3_E55_Epiblast_rep1_L1.bam
+
+40554380 reads; of these:
+  40554380 (100.00%) were unpaired; of these:
+    30643405 (75.56%) aligned 0 times
+    8170487 (20.15%) aligned exactly 1 time
+    1740488 (4.29%) aligned >1 times
+24.44% overall alignment rate
+
+#To eliminate  Illumina adapter Sequence
+cutadapt -a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA  -A AGATCGGAAGAGCACACGTCTGAACTCCAGTCA -o trimmed.SRR8454442_1.fastq -p trimmed.SRR8454442.fastq SRR8454442_1.fastq SRR8454442_2.fastq
+#This is cutadapt 1.18 with Python 2.7.15
+#Command line parameters: -a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA -A AGATCGGAAGAGCACACGTCTGAACTCCAGTCA -o trimmed.SRR8454442_1.fastq -p #trimmed.SRR8454442.fastq SRR8454442_1.fastq SRR8454442_2.fastq
+#Processing reads on 1 core in paired-end mode ...
+Total read pairs processed:         40,554,380
+  Read 1 with adapter:              10,532,897 (26.0%)
+  Read 2 with adapter:               4,359,793 (10.8%)
+Pairs written (passing filters):    40,554,380 (100.0%)
+
+Total basepairs processed: 12,166,314,000 bp
+  Read 1: 6,083,157,000 bp
+  Read 2: 6,083,157,000 bp
+Total written (filtered):  11,792,205,215 bp (96.9%)
+  Read 1: 5,732,688,323 bp
+  Read 2: 6,059,516,892 bp
+
+=== First read: Adapter 1 ===
+
+Sequence: AGATCGGAAGAGCACACGTCTGAACTCCAGTCA; Type: regular 3'; Length: 33; Trimmed: 10532897 times.
+
+No. of allowed errors:
+0-9 bp: 0; 10-19 bp: 1; 20-29 bp: 2; 30-33 bp: 3
+
+Bases preceding removed adapters:
+  A: 2.0%
+  C: 94.8%
+  G: 2.0%
+  T: 1.0%
+  none/other: 0.1%
+WARNING:
+    The adapter is preceded by "C" extremely often.
+    The provided adapter sequence could be incomplete at its 3' end.
+
+40554380 reads; of these:
+  40554380 (100.00%) were unpaired; of these:
+    25404697 (62.64%) aligned 0 times
+    12491710 (30.80%) aligned exactly 1 time
+    2657973 (6.55%) aligned >1 times
+37.36% overall alignment rate
+bowtie2 -x /data/index/bowtie2/mm10/mm10 -U trimmed.SRR8454442_1.fastq|samtools view -bS - > H3K4me3_E55_Epiblast_rep1_L1.bam
+bowtie2 -x /data/index/bowtie2/mm10/mm10 -U trimmed.SRR8454442.fastq|samtools view -bS - > H3K4me3_E55_Epiblast_rep1_L2.bam
+#To eliminate  Nextera Transposase Sequence (for ATACseq)
+#cutadapt -a CTTATACACATCTCCGAGCCCACGAGACTAAGGCGAATCTCGTATGCCGT  -A CTTATACACATCTCCGAGCCCACGAGACTAAGGCGAATCTCGTATGCCGT -o #trimmed.SRR8454442_1_v2.fastq -p trimmed.SRR8454442_2_v2.fastq trimmed.SRR8454442_1.fastq trimmed.SRR8454442.fastq
+################################################################################################
+
+#To eliminate  Illumina adapter Sequence
+cutadapt -a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA  -A AGATCGGAAGAGCACACGTCTGAACTCCAGTCA -o trimmed.SRR8454443_1.fastq -p trimmed.SRR8454443_2.fastq SRR8454443_1.fastq SRR8454443_2.fastq
+
+bowtie2 -x /data/index/bowtie2/mm10/mm10 -U trimmed.SRR8454443_1.fastq|samtools view -bS - > H3K4me3_E55_Epiblast_rep2_L1.bam
+bowtie2 -x /data/index/bowtie2/mm10/mm10 -U trimmed.SRR8454443_2.fastq|samtools view -bS - > H3K4me3_E55_Epiblast_rep2_L2.bam
+#################################################################################################
+
+cutadapt -a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA  -A AGATCGGAAGAGCACACGTCTGAACTCCAGTCA -o trimmed.SRR8454444_1.fastq -p trimmed.SRR8454444_2.fastq SRR8454444_1.fastq SRR8454444_2.fastq
+bowtie2 -x /data/index/bowtie2/mm10/mm10 -U trimmed.SRR8454444_1.fastq|samtools view -bS - > H3K4me3_E65_Epiblast_.bam
+8188782 reads; of these:
+  8188782 (100.00%) were unpaired; of these:
+    1430192 (17.47%) aligned 0 times
+    3695764 (45.13%) aligned exactly 1 time
+    3062826 (37.40%) aligned >1 times
+82.53% overall alignment rate
+cutadapt -a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA  -A AGATCGGAAGAGCACACGTCTGAACTCCAGTCA -o trimmed.SRR8454445_1.fastq -p trimmed.SRR8454445_2.fastq SRR8454445_1.fastq SRR8454445_2.fastq
+bowtie2 -x /data/index/bowtie2/mm10/mm10 -U trimmed.SRR8454445_1.fastq|samtools view -bS - > H3K4me3_E65_Epiblast_rep2_L1.bam
+bowtie2 -x /data/index/bowtie2/mm10/mm10 -U trimmed.SRR8454444_2.fastq|samtools view -bS - > H3K4me3_E65_Epiblast_rep2_L2.bam
+#####################################################################################################
+
+
