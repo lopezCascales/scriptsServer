@@ -1,0 +1,37 @@
+library(pdftools)
+pdf_convert(
+  pdf       = "HNSCC migration paper_Oncogene_Main figures.pdf",
+  format    = "tiff",
+  dpi       = 600,
+  filenames = paste0("figura_Main", 1:pdf_info("HNSCC migration paper_Oncogene_Main figures.pdf")$pages, ".tiff")
+)
+
+
+
+library(pdftools)
+library(magick)
+
+pdf_path <- "BC-seq and metastasis signature_Supplementary-2-10.pdf"
+
+# Tu conversión que funciona
+pdf_convert(
+  pdf       = pdf_path,
+  format    = "tiff",
+  dpi       = 300,
+  filenames = paste0("figura_", 1:pdf_info(pdf_path)$pages, ".tiff")
+)
+
+pdf_path <- "BC-seq and metastasis signature_Supplementary-2-10.pdf"
+# Leer todos los TIFFs generados y combinarlos en uno
+n_pages <- pdf_info(pdf_path)$pages
+tiff_files <- paste0("figura_", 1:n_pages, ".tiff")
+
+
+library(magick)
+
+pages <- image_read(tiff_files)
+
+image_write(pages,
+            path    = "supplementary_combined.tiff",
+            format  = "tiff",
+            quality = 100)
