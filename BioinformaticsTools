@@ -1,6 +1,24 @@
 ###############################################################3
 Bioinformatics Tools
 
+
+R packages important
+
+Remotes  Change Version R pakages
+dplyr
+ggstats
+ggpubr
+ggplot2
+Seurat
+ChIPPeakAnno
+ChIPseeker
+openxlsx
+
+
+
+
+
+
 Gene finding and splice sites
 
 DeepCDS Prediction of coding sequences (CDS) in prokaryotic sequencing reads
